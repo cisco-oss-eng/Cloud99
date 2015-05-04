@@ -1,2 +1,2 @@
 # OpenstackHA
-Test Framework to test the Openstack HA
+ Framework to test the Openstack HA
