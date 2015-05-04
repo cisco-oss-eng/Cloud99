@@ -1,0 +1,8 @@
+export OS_AUTH_URL=http://172.29.68.148:5000/v2.0
+export OS_TENANT_ID=7b992a31ee354466aea3bf427d9eac8f
+export OS_TENANT_NAME="admin"
+export OS_USERNAME="admin"
+export OS_PASSWORD="admin"
+export OS_REGION_NAME="RegionOne"
+if [ -z "$OS_REGION_NAME" ]; then unset OS_REGION_NAME; fi
+

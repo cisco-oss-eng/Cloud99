@@ -1,0 +1,24 @@
+monitors:
+    # plugin name
+    keystone:
+        # list
+        keystone_service:
+            ip:
+            user:
+            password:
+        keystone_service1:
+            ip:
+            user:
+            password:
+    neutron:
+        neutron_service:
+            ip:
+            user:
+            password:
+    processes:
+        libvirt:
+            ip:
+            pid:
+    nagiosMonitor:
+        nagios:
+            ip: <cloud information>

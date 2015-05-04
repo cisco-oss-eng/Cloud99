@@ -1,0 +1,8 @@
+1. When trying to ssh using paramiko into RHEL, you might hit the error "'sudo: sorry, you must have a tty to run sudo\n'"
+here is a discussing from stackoverflow - http://stackoverflow.com/questions/5785353/paramiko-and-sudo
+Workaround - go to /etc/sudoers on the RHEL machine and comment out the line requiretty
+
+2. when paramiko ssh connection is closed and reopened, the sesssion is lost completely - known?
+
+
+
