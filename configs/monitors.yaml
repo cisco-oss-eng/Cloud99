@@ -24,6 +24,10 @@ monitors:
             ip: 12.2
             a:
             b:
+    ansiblemonitor:
+        ansible:
+            frequency: 5
+            sudo: False
     healthapi:
         openstack_api:
             openrc_file:

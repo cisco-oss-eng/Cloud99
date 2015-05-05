@@ -13,9 +13,10 @@ LOG = infra.ha_logging(__name__)
 
 class HealthAPI(BaseMonitor):
     # Create Table and add header
-    table_name = "Health API Monitor"
+    table_endpoint_check = "Health Status: Endpoint Check"
+    
 
-    def start(self, sync=None, finish_execution=None):
+    def start(self, sync=None, finish_execution=None, mode="basic"):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
         input_args = self.get_input_arguments()
         if 'openrc_file' in input_args[0]['openstack_api']:
@@ -33,9 +34,10 @@ class HealthAPI(BaseMonitor):
             noenv = False
         cred = openstack_api.credentials.Credentials(openrc, password, noenv)
 
-        infra.create_report_table(self, self.table_name)
-        infra.add_table_headers(self, self.table_name,
-                                ["Endpoint Check", "Status"])
+        infra.create_report_table(self, self.table_endpoint_check)
+        infra.add_table_headers(self, self.table_endpoint_check,
+                                ["Endpoint", "Status"])
+        self.health_check_start(cred)
 
         if sync:
             infra.display_on_terminal(self, "Waiting for Runner Notification")
@@ -62,55 +64,71 @@ class HealthAPI(BaseMonitor):
             self.keystone_endpoint_check(keystone_instance)
             self.glance_endpoint_check(glance_instance)
             self.cinder_endpoint_check(cinder_instance)
+            # Check service status
+            self.nova_endpoint_check(nova_instance, detail=True)
+            self.neutron_endpoint_check(neutron_instance, detail=True)
             time.sleep(2)
 
         infra.display_infra_report()
 
-    def nova_endpoint_check(self, nova_instance):
+    def nova_endpoint_check(self, nova_instance, detail=False):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
-            infra.display_on_terminal(self, "Nova Endpoint Check: OK")
-            infra.add_table_rows(self, self.table_name, [["Nova ", "OK"]])
+            if detail == False:
+                infra.display_on_terminal(self, "Nova Endpoint Check: OK")
+            else:
+                for service in service_list:
+                    service_data = "Binary=%s   Host=%s   Status=%s   State=%s" %(service.binary, service.host,
+                                                                                  service.status, service.state)
+                    infra.display_on_terminal(self, service_data)
+            infra.add_table_rows(self, self.table_endpoint_check, [["Nova ", "OK"]])
         else:
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED")
-            infra.add_table_rows(self, self.table_name, [["Nova ", "FAIL"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Nova ", "FAIL"]])
         
-    def neutron_endpoint_check(self, neutron_instance):
+    def neutron_endpoint_check(self, neutron_instance, detail=False):
         status, message, agent_list = neutron_instance.neutron_agent_list()
         if status == 200:
-            infra.display_on_terminal(self, "Neutron Endpoint Check: OK")
-            infra.add_table_rows(self, self.table_name, [["Neutron ", "OK"]])
+            if detail == False:
+                infra.display_on_terminal(self, "Neutron Endpoint Check: OK")
+            else:
+                for agent in agent_list:
+                    agent_data = "Agent=%s   Host=%s   Alive=%s   Admin State=%s" % (agent['binary'], agent['host'],
+                                                                                     agent['alive'], agent['admin_state_up'])
+                    infra.display_on_terminal(self, agent_data)
+                
+            infra.add_table_rows(self, self.table_endpoint_check, [["Neutron ", "OK"]])
         else:
             infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL")
-            infra.add_table_rows(self, self.table_name, [["Neutron ", "FAIL"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Neutron ", "FAIL"]])
     
     def keystone_endpoint_check(self, keystone_instance):
         status, message, service_list = \
             keystone_instance.keystone_service_list()
         if status == 200:
             infra.display_on_terminal(self, "Keystone Endpoint Check: OK")
-            infra.add_table_rows(self, self.table_name, [["Keystone ", "OK"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Keystone ", "OK"]])
         else:
             infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL")
-            infra.add_table_rows(self, self.table_name, [["Keystone ", "FAIL"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Keystone ", "FAIL"]])
     
     def glance_endpoint_check(self, glance_instance):
         status, message, image_list = glance_instance.glance_image_list()
         if status == 200:
             infra.display_on_terminal(self, "Glance endpoint Check: OK")
-            infra.add_table_rows(self, self.table_name, [["Glance ", "OK"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Glance ", "OK"]])
         else:
             infra.display_on_terminal(self, "Glance endpoint Check: FAILED")
-            infra.add_table_rows(self, self.table_name, [["Glance ", "FAIL"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Glance ", "FAIL"]])
     
     def cinder_endpoint_check(self, cinder_instance):
         status, message, cinder_list = cinder_instance.cinder_list()
         if status == 200:
             infra.display_on_terminal(self, "Cinder endpoint Check : OK")
-            infra.add_table_rows(self, self.table_name, [["Cinder ", "OK"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Cinder ", "OK"]])
         else:
             infra.display_on_terminal(self, "Cinder endpoint Check: FAILED")
-            infra.add_table_rows(self, self.table_name, [["Cinder ", "FAIL"]])
+            infra.add_table_rows(self, self.table_endpoint_check, [["Cinder ", "FAIL"]])
         
     def stop(self):
         infra.display_on_terminal(self, "Stopping the Keystone...")
