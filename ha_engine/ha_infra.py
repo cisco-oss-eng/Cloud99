@@ -1,6 +1,6 @@
 import logging
 import sys
-from tabulate import tabulate
+from prettytable import PrettyTable
 import pprint
 import collections
 import ssh.sshutils as SSH
@@ -14,9 +14,10 @@ LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
 
 
+ha_infra_report = {}
+
 class NotifyNotImplemented(Exception):
     pass
-
 
 def ha_logging(name):
     '''
@@ -38,7 +39,64 @@ def ha_logging(name):
 LOG = ha_logging(__name__)
 
 
-def display_report(module, steps = None):
+def create_report_table(self, tablename):
+
+    if self:
+        plugin = get_plugin_name(self)
+    if tablename:
+        plugin_table = ha_infra_report.get(plugin, None)
+        if plugin_table is None:
+            ha_infra_report[plugin] = [{tablename: []}]
+        else:
+            ha_infra_report.get(plugin).append({tablename: []})
+
+
+def add_table_headers(self, tablename, headers):
+    if self:
+        plugin = get_plugin_name(self)
+
+    plugin_tables = ha_infra_report.get(plugin)
+    if plugin_tables:
+        for table in plugin_tables:
+            if tablename in table:
+                if len(table.get(tablename)) > 0:
+                    table.get(tablename)[0] = headers
+                else:
+                    table.get(tablename).append(headers)
+
+
+def add_table_rows(self, tablename, rows):
+    if self:
+        plugin = get_plugin_name(self)
+    plugin_tables = ha_infra_report.get(plugin)
+    if plugin_tables:
+        for table in plugin_tables:
+            if tablename in table:
+                for row in rows:
+                    table.get(tablename).append(row)
+
+def display_infra_report():
+    ha_infra_repor = [ha_infra_report]
+    for plugin_tables in ha_infra_repor:
+        for plugin_name in plugin_tables:
+            for plugin_table in plugin_tables[plugin_name]:
+                for tablename in plugin_table:
+                    individual_table = plugin_table[tablename]
+                    headers = individual_table[0]
+                    print
+                    print "*"*10 + tablename + "*"*10
+                    print
+                    x = PrettyTable(headers)
+                    for header in headers:
+                       x.align[header] = "l"
+                    x.padding_width = 1
+                    rows = individual_table[1:]
+                    for row in rows:
+                        x.add_row(row)
+                    print x
+
+
+def display_report(module, steps=None):
 
     print '*' * 50
     if not steps:
@@ -62,7 +120,7 @@ def display_report(module, steps = None):
         print '-' * 50
         print 'Module:: %s ' %(module.__class__.__name__)
         print '_' * 50
-        print tabulate(result['values'], headers = result['headers'])
+        #print tabulate(result['values'], headers = result['headers'])
     else:
         LOG.critical('Unable to print report')
         ha_exit(0)
@@ -265,3 +323,37 @@ class HAinfra(object):
 
     def set_proceed_status(self, obj):
         self.proceed_dict[obj] = True
+
+
+if __name__ == "__main__":
+    self = "disruptors.plugins.disruptor.Disruptor"
+    rows1 = [
+        ['a', '1', '2'],
+        ['a', '1', '2'],
+        ['a', '1', '2']
+    ]
+
+    create_report_table(self, "testing")
+    add_table_headers(self, "testing", ['A', 'B', 'C'])
+    add_table_rows(self, "testing", rows1)
+
+    create_report_table(self, "testing2")
+    add_table_headers(self, "testing2", ['A2', 'B2', 'C2'])
+    add_table_rows(self, "testing2", rows1)
+
+    self = "runners.plugins.runners.runners"
+    rows1 = [
+        ['a', '1', '2'],
+        ['a', '1', '2'],
+        ['a', '1', '2']
+    ]
+
+    create_report_table(self, "testing")
+    add_table_headers(self, "testing", ['A', 'B', 'C'])
+    add_table_rows(self, "testing", rows1)
+
+    create_report_table(self, "testing2")
+    add_table_headers(self, "testing2", ['A2', 'B2', 'C2'])
+    add_table_rows(self, "testing2", rows1)
+
+    display_infra_report()
