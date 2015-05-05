@@ -8,14 +8,16 @@ from ha_engine import ha_infra
 import os
 import signal
 import sys
+import shutil
 
 LOG = ha_infra.ha_logging(__name__)
 
-class HAExecutor(object): 
+class HAExecutor(object):
+    infra_path = "/tmp/ha_infra/"
     def __init__(self, parser):
         """
-        Get the resource form haparser as input parameter and creates 
-        all the objects that are needed to run the executor. 
+        Get the resource form haparser as input parameter and creates
+        all the objects that are needed to run the executor.
         """
 
         # Resoruce from haparser
@@ -35,16 +37,20 @@ class HAExecutor(object):
                                  "Plugin to class map")
 
     def run(self):
-        """ 
+        """
         Actual execution starts here
         """
         # Exit if the executor is not defined.
         execute = self.executor_data.get('executors', None)
         if execute is None:
-            LOG.critical('Nothing to run') 
+            LOG.critical('Nothing to run')
             ha_infra.ha_exit(0)
 
         self.executor_threads = []
+        # clean up the xterm paths
+        if os.path.exists(self.infra_path):
+            shutil.rmtree(self.infra_path)
+
         for executor_index, executor_block in enumerate(execute):
                 parallel = False
                 repeat_count = 1
@@ -69,11 +75,11 @@ class HAExecutor(object):
                     if 'mode' in executor_block:
                         # if mode is parallel set parllel flag
                         if executor_block['mode'].lower() == 'parallel':
-                            LOG.info('starting thread') 
-                            parallel = True 
+                            LOG.info('starting thread')
+                            parallel = True
                         elif executor_block['mode'].lower() == 'sequence':
-                            LOG.info('sequential execution') 
-                        else: 
+                            LOG.info('sequential execution')
+                        else:
                             LOG.critical('Unsupported mode , '
                                          'must be either '
                                          '"parallel" or "sequence"')
@@ -82,8 +88,8 @@ class HAExecutor(object):
 
                     # process the timer command
                     if 'timer' in executor_block:
-                        LOG.info('Do timer related stuff..') 
-                        hatimer = True 
+                        LOG.info('Do timer related stuff..')
+                        hatimer = True
                         executor_block.pop('timer')
 
                     try:
@@ -100,7 +106,7 @@ class HAExecutor(object):
                             # start all the executor threads
                             [t.start() for t in self.executor_threads]
                             [t.join() for t in self.executor_threads]
-                    except NotImplementedError as runerror: 
+                    except NotImplementedError as runerror:
                         LOG.critical('Unable to execute %s - %s'
                                      % runerror, step_action)
                         ha_infra.ha_exit(0)
@@ -110,7 +116,7 @@ class HAExecutor(object):
                                      %(notifyerr))
                         ha_infra.ha_exit(0)
 
-                    except Exception as runerror: 
+                    except Exception as runerror:
                         LOG.critical('Unable to continue execution %s'
                                      %str(runerror))
                         ha_infra.ha_exit(0)
@@ -163,14 +169,13 @@ class HAExecutor(object):
             elif step_action in plugin_commands:
                 if parallel:
                     print "Creating a thread for " + node
-                    infra_path = "/tmp/ha_infra/"
-                    pipe_path = infra_path + module_name
 
-                    if not os.path.exists(infra_path):
+                    pipe_path = self.infra_path + module_name
+                    if not os.path.exists(self.infra_path):
                         LOG.info("Creating a file path for " + pipe_path)
                         try:
                             original_umask = os.umask(0)
-                            os.makedirs(infra_path, 0777)
+                            os.makedirs(self.infra_path, 0777)
                         finally:
                             os.umask(original_umask)
 

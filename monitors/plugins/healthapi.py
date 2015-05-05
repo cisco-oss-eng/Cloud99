@@ -10,7 +10,11 @@ import openstack_api.keystone_api
 
 LOG = infra.ha_logging(__name__)
 
+
 class HealthAPI(BaseMonitor):
+    # Create Table and add header
+    table_name = "Health API Monitor"
+
     def start(self, sync=None, finish_execution=None):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
         input_args = self.get_input_arguments()
@@ -28,62 +32,80 @@ class HealthAPI(BaseMonitor):
         else:
             noenv = False
         cred = openstack_api.credentials.Credentials(openrc, password, noenv)
+
+        infra.create_report_table(self, self.table_name)
+        infra.add_table_headers(self, self.table_name,
+                                ["Endpoint Check", "Status"])
         self.health_check_start(cred)
-       
-   
+
+
+
     def health_check_start(self, cred):
         creds = cred.get_credentials()
         creds_nova = cred.get_nova_credentials_v2()
         nova_instance = openstack_api.nova_api.NovaHealth(creds_nova)
         neutron_instance = openstack_api.neutron_api.NeutronHealth(creds)
         keystone_instance = openstack_api.keystone_api.KeystoneHealth(creds)
-        glance_instance = openstack_api.glance_api.GlanceHealth(keystone_instance)
+        glance_instance = \
+            openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
-        while True:
+
+        #while True:
+        for i in range(2):
             self.nova_endpoint_check(nova_instance)
             self.neutron_endpoint_check(neutron_instance)
             self.keystone_endpoint_check(keystone_instance)
             self.glance_endpoint_check(glance_instance)
             self.cinder_endpoint_check(cinder_instance)
             time.sleep(2)
-    
+
+        infra.display_infra_report()
+
     def nova_endpoint_check(self, nova_instance):
         status, message, service_list = nova_instance.nova_service_list()
-        if  status == 200:
+        if status == 200:
             infra.display_on_terminal(self, "Nova Endpoint Check: OK")
+            infra.add_table_rows(self, self.table_name, [["Nova ", "OK"]])
         else:
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED")
+            infra.add_table_rows(self, self.table_name, [["Nova ", "FAIL"]])
         
-    
     def neutron_endpoint_check(self, neutron_instance):
         status, message, agent_list = neutron_instance.neutron_agent_list()
         if status == 200:
-            infra.display_on_terminal(self,"Neutron Endpoint Check: OK")
+            infra.display_on_terminal(self, "Neutron Endpoint Check: OK")
+            infra.add_table_rows(self, self.table_name, [["Neutron ", "OK"]])
         else:
-            infra.display_on_terminal(self,"Neutron Endpoint Check: FAIL")
+            infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL")
+            infra.add_table_rows(self, self.table_name, [["Neutron ", "FAIL"]])
     
     def keystone_endpoint_check(self, keystone_instance):
-        status, message, service_list = keystone_instance.keystone_service_list()
+        status, message, service_list = \
+            keystone_instance.keystone_service_list()
         if status == 200:
-            infra.display_on_terminal(self,"Keystone Endpoint Check: OK")
+            infra.display_on_terminal(self, "Keystone Endpoint Check: OK")
+            infra.add_table_rows(self, self.table_name, [["Keystone ", "OK"]])
         else:
             infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL")
+            infra.add_table_rows(self, self.table_name, [["Keystone ", "FAIL"]])
     
     def glance_endpoint_check(self, glance_instance):
         status, message, image_list = glance_instance.glance_image_list()
         if status == 200:
             infra.display_on_terminal(self, "Glance endpoint Check: OK")
+            infra.add_table_rows(self, self.table_name, [["Glance ", "OK"]])
         else:
             infra.display_on_terminal(self, "Glance endpoint Check: FAILED")
+            infra.add_table_rows(self, self.table_name, [["Glance ", "FAIL"]])
     
     def cinder_endpoint_check(self, cinder_instance):
         status, message, cinder_list = cinder_instance.cinder_list()
         if status == 200:
             infra.display_on_terminal(self, "Cinder endpoint Check : OK")
+            infra.add_table_rows(self, self.table_name, [["Cinder ", "OK"]])
         else:
             infra.display_on_terminal(self, "Cinder endpoint Check: FAILED")
-        
-
+            infra.add_table_rows(self, self.table_name, [["Cinder ", "FAIL"]])
         
     def stop(self):
         infra.display_on_terminal(self, "Stopping the Keystone...")
@@ -97,7 +119,9 @@ class HealthAPI(BaseMonitor):
     def notify(self, *args, **kwargs):
         infra.display_on_terminal(self, 'Args is  %s', str(args))
         for key, value in kwargs.iteritems():
-            infra.display_on_terminal(self, 'Got Notification with key %s, value %s' %(key, value))
+            infra.display_on_terminal(self,
+                                      'Got Notification with key %s, value %s'
+                                      % (key, value))
             
 """ 
 if __name__ == "__main__":

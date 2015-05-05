@@ -24,3 +24,8 @@ monitors:
             ip: <cloud information>
             a:
             b:
+    healthapi:
+        openstack_api:
+            openrc_file:
+            password:
+

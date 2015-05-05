@@ -2,6 +2,6 @@ executors:
     -
         mode: parallel
         repeat: 1
-        node_disruption : [control-1]
-        start: [nagios]
+        #node_disruption : [control-1]
+        start: [openstack_api]
     -
