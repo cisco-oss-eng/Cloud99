@@ -44,7 +44,7 @@ class NagiosMonitor(BaseMonitor):
     def start(self, sync=None, finish_execution=None):
 
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
-
+        input = self.get_input_arguments()
         i = 0
         inputs = sys.argv[1:]
         for arg in inputs:

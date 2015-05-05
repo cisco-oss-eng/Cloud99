@@ -163,18 +163,26 @@ class HAExecutor(object):
             elif step_action in plugin_commands:
                 if parallel:
                     print "Creating a thread for " + node
+                    infra_path = "/tmp/ha_infra/"
+                    pipe_path = infra_path + module_name
 
-                    pipe_path = "/tmp/" + module_name
-                    if not os.path.exists(pipe_path):
+                    if not os.path.exists(infra_path):
                         LOG.info("Creating a file path for " + pipe_path)
+                        try:
+                            original_umask = os.umask(0)
+                            os.makedirs(infra_path, 0777)
+                        finally:
+                            os.umask(original_umask)
+
                         os.mkfifo(pipe_path)
 
                     self.open_pipes.append(pipe_path)
                     pos = self.get_xterm_position()
-                    subprocess.Popen(['xterm', '-geometry', pos,  '-e', 'tail', '-f', pipe_path])
+                    subprocess.Popen(['xterm', '-geometry', pos,
+                                      '-e', 'tail', '-f', pipe_path])
                     t = threading.Thread(target=self.execute_the_command,
-                                                args=(class_object, step_action,
-                                                sync, finish_execution))
+                                            args=(class_object, step_action,
+                                            sync, finish_execution))
                     self.executor_threads.append(t)
                 else:
                     self.execute_the_command(class_object, step_action)

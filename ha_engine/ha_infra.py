@@ -227,17 +227,30 @@ def get_plugin_name(self):
 def get_my_pipe_path(self):
 
     path = get_plugin_name(self)
-    pipe_path = "/tmp/" + path
+
+    pipe_path = "/tmp/ha_infra/" + path
     if not os.path.exists(pipe_path):
-            os.mkfifo(pipe_path)
+        LOG.critical("Path doesnt exist for %s", pipe_path)
+        os.mkfifo(pipe_path)
 
     return pipe_path
 
 def display_on_terminal(self, *kwargs):
+    """
+    Method to display inforamtion on the xterm
+    :param kwargs: message to be displayed
+    """
     pipe_path = get_my_pipe_path(self)
     with open(pipe_path, "w") as p:
         output = get_plugin_name(self) + " :: " + str("".join(kwargs)) + "\n"
         p.write(output)
+
+def get_openstack_config():
+    """
+    Method to get the complete openstack config
+    :return: dict
+    """
+    return ha_parser.HAParser().openstack_config
 
 @singleton
 class HAinfra(object):

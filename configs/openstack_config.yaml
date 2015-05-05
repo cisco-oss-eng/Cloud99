@@ -1,0 +1,20 @@
+control-1:
+    ip:
+    user:
+    password:
+    role: controller
+control-2:
+    ip:
+    user:
+    password:
+    role: controller
+network-1:
+    ip:
+    user:
+    password:
+    role: network
+network-2:
+    ip:
+    user:
+    password:
+    role: network

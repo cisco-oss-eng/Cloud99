@@ -1,0 +1,25 @@
+executor:
+    -
+    mode: parallel
+    repeat: 1
+    baremetal_disruption:
+        - node: [control-1, control-2]
+        - graceful: True
+    runner:
+        rally:
+             <user args>
+    monitor:
+       monitors: [nagios, openstackapi]
+    -
+    mode: parallel
+    repeat: 1
+    process_disruption:
+        - node: [control-1, control-2]
+        - process: [keystone, neutron]
+        - graceful: False
+    runner:
+        rally:
+            <user args>
+    monitor:
+       monitors: [nagios, openstackapi]:
+    -

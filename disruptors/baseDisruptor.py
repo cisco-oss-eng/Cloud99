@@ -24,6 +24,9 @@ class BaseDisruptor(object):
     def get_input_arguments(self):
         return self.input_args
 
+    def node_disruption(self, sync=None, finish_execution=None):
+        raise NotImplementedError('Subclass should implement this method')
+
     def start_disruption(self, sync=None, finish_execution=None):
         raise NotImplementedError('Subclass should implement this method')
 

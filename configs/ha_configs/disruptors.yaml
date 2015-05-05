@@ -1,0 +1,22 @@
+disruptors:
+  disruptor:
+    control-1:
+      ip: null
+      password: null
+      role: controller
+      user: null
+    control-2:
+      ip: null
+      password: null
+      role: controller
+      user: null
+    network-1:
+      ip: null
+      password: null
+      role: network
+      user: null
+    network-2:
+      ip: null
+      password: null
+      role: network
+      user: null

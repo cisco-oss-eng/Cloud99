@@ -6,31 +6,29 @@ import os
 
 LOG = infra.ha_logging(__name__)
 
-class BaremetalDisruptor(BaseDisruptor):
+class Disruptor(BaseDisruptor):
 
     report_headers = ['state', 'type', 'uptime']
     ha_report = []
     sync = None
     finish_execution = None
 
-    def start_disruption(self, sync=None, finish_execution=None):
+    def node_disruption(self, sync=None, finish_execution=None):
         self.sync = sync
         self.finish_execution = finish_execution
         infra.display_on_terminal(self, "Entering the Baremetal")
         infra.display_on_terminal(self, "Executing Baremetal Disruption... ")
         input_args = self.get_input_arguments()
-        infra.display_on_terminal(self, "My input args are %s ", str(input_args))
+        host_config = infra.get_openstack_config()
 
-        '''
-        while True:
-                infra.display_on_terminal(self, "Hello world!\n")
-                time.sleep(1)
+        infra.display_on_terminal(self, "My input args are %s ", str(input_args))
+        infra.display_on_terminal(self, "Openstack Config %s", str(host_config))
         '''
         if sync:
             infra.display_on_terminal(self, "DISRUPTOR Going to wait......... ")
             sync.wait()
-
-        infra.notify_all_waiters(sync)
+        '''
+        #infra.notify_all_waiters(sync)
         infra.display_on_terminal(self,
                                   "BAREMETAL DISRUPTOR GOT THE NOTIFICATION.... REBOOTING ")
         while infra.is_execution_completed(self.finish_execution) is False:
@@ -41,6 +39,9 @@ class BaremetalDisruptor(BaseDisruptor):
 
         infra.display_on_terminal(self, "BAREMETAL TERMINATING.........")
         #self.send_notification(state = 'Started')
+
+    def start_disruption(self, sync=None, finish_execution=None):
+        pass
 
     def is_module_exeution_completed(self):
         return infra.is_execution_completed(finish_execution=self.finish_execution)
@@ -59,5 +60,6 @@ class BaremetalDisruptor(BaseDisruptor):
                 'values' : self.ha_report }
 
 
-
+    def baremetal_disruption(self, sync=None, finish_execution=None):
+        pass
 

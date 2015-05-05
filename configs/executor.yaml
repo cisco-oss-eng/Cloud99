@@ -1,15 +1,7 @@
-# executor method availabe - execute, stop,
-# runner methods availabe = start, stop
-
 executors:
-    # mode is the built in command
     -
         mode: parallel
         repeat: 1
-        execute: [keystone_authentication]
-        start_disruption: [node_1]
+        node_disruption : [control-1]
         start: [nagios]
     -
-        report: [keystone_authentication]
-   # -
-   #     report: [keystone_authentication]

@@ -3,7 +3,7 @@ import inspect
 import yaml
 import ha_engine.ha_infra as infra
 import ha_engine.ha_infra as common
-
+import time
 from collections import OrderedDict
 
 LOG = common.ha_logging(__name__)
@@ -64,7 +64,7 @@ def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
         print 'Error in parsing'  + str(e) 
         common.ha_exit(0) 
 
-
+@infra.singleton
 class HAParser(object):
     def __init__(self, cfg_file=None): 
         """
@@ -80,6 +80,9 @@ class HAParser(object):
         self.plugin_to_class_map = {}
         self.node_plugin_map = {}
 
+        # base
+        self.openstack_config = {}
+
         infra_source_path = os.environ.get('HAPATH', None)
         if infra_source_path is None:
             LOG.critical("Run the install.sh ** source install.sh **")
@@ -87,9 +90,7 @@ class HAParser(object):
 
         self.parsed_executor_config = self.parse_and_load_input_file(
             self.user_input_file)
-        self.parsed_disruptor_config = \
-            self.parse_and_load_input_file(infra_source_path +
-                                           "/configs/disruptors.yaml")
+
         self.parsed_monitor_config = \
             self.parse_and_load_input_file(infra_source_path +
                                            "/configs/monitors.yaml")
@@ -112,6 +113,7 @@ class HAParser(object):
         variables
         """
         self.find_the_ha_infra_path()
+        self.parse_openstack_config()
         self.map_user_input_to_available_plugins()
         self.map_plugins_to_class_and_create_instances()
 
@@ -201,6 +203,7 @@ class HAParser(object):
         parsed_plugin_list = [self.parsed_disruptor_config,
                               self.parsed_monitor_config,
                               self.parsed_runner_config]
+
         for parsed_config_data in parsed_plugin_list:
             for plugin in parsed_config_data:
                 plugin_data = parsed_config_data.get(plugin, None)
@@ -220,8 +223,11 @@ class HAParser(object):
                 else:
                     LOG.warning("No input data given for plugin %s", plugin)
 
+        common.dump_on_console(self.node_plugin_map, "Node Plugin Map")
+
     @staticmethod
     def parse_and_load_input_file(yaml_file):
+
         parsed_config_dict = OrderedDict()
         if yaml_file:
             infra.infra_assert(yaml_file is not None, "Config file is Missing")
@@ -242,3 +248,34 @@ class HAParser(object):
 
         return parsed_config_dict
 
+    def parse_openstack_config(self):
+        openstack_config = os.environ.get('HAPATH', None)
+        if openstack_config:
+            complete_openstack_config = \
+                openstack_config + "/configs/openstack_config.yaml"
+
+        self.openstack_config = dict(self.parse_and_load_input_file(
+            complete_openstack_config))
+        disruptor_yaml = \
+            openstack_config + "/configs/ha_configs/disruptors.yaml"
+
+        if os.path.isfile(disruptor_yaml):
+            os.remove(disruptor_yaml)
+
+        new_dict = {}
+        for key, data in self.openstack_config.items():
+            new_dict[key] = dict(data)
+        disruptor_dict = {'disruptors': {'disruptor': new_dict}}
+
+        self.dump_dict_to_yaml(disruptor_dict, yaml_file=disruptor_yaml)
+        self.parsed_disruptor_config = \
+            self.parse_and_load_input_file(openstack_config +
+                                           "/configs/ha_configs/disruptors.yaml")
+
+    @staticmethod
+    def dump_dict_to_yaml(data, yaml_file=None):
+        """
+        Method to dump the dict to a output yaml file
+        """
+        with open(yaml_file, "w+") as f:
+            f.write(yaml.dump(data, default_flow_style=False))

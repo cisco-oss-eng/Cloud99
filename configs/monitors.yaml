@@ -22,3 +22,5 @@ monitors:
     nagiosMonitor:
         nagios:
             ip: <cloud information>
+            a:
+            b:
