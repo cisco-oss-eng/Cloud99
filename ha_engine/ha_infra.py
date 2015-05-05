@@ -14,7 +14,8 @@ LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
 
 
-ha_infra_report = {}
+ha_infra_report_tables = {}
+ha_infra_historical_tables = {}
 
 class NotifyNotImplemented(Exception):
     pass
@@ -39,23 +40,25 @@ def ha_logging(name):
 LOG = ha_logging(__name__)
 
 
-def create_report_table(self, tablename):
+def create_report_table(self, tablename, historical=False):
 
     if self:
         plugin = get_plugin_name(self)
     if tablename:
-        plugin_table = ha_infra_report.get(plugin, None)
+        plugin_table = ha_infra_report_tables.get(plugin, None)
+        if historical:
+            ha_infra_historical_tables[tablename] = True
         if plugin_table is None:
-            ha_infra_report[plugin] = [{tablename: []}]
+            ha_infra_report_tables[plugin] = [{tablename: []}]
         else:
-            ha_infra_report.get(plugin).append({tablename: []})
+            ha_infra_report_tables.get(plugin).append({tablename: []})
 
 
 def add_table_headers(self, tablename, headers):
     if self:
         plugin = get_plugin_name(self)
 
-    plugin_tables = ha_infra_report.get(plugin)
+    plugin_tables = ha_infra_report_tables.get(plugin)
     if plugin_tables:
         for table in plugin_tables:
             if tablename in table:
@@ -68,32 +71,45 @@ def add_table_headers(self, tablename, headers):
 def add_table_rows(self, tablename, rows):
     if self:
         plugin = get_plugin_name(self)
-    plugin_tables = ha_infra_report.get(plugin)
+    plugin_tables = ha_infra_report_tables.get(plugin)
     if plugin_tables:
         for table in plugin_tables:
             if tablename in table:
                 for row in rows:
                     table.get(tablename).append(row)
 
-def display_infra_report():
-    ha_infra_repor = [ha_infra_report]
+
+def display_infra_report(show_historical=False):
+    ha_infra_repor = [ha_infra_report_tables]
     for plugin_tables in ha_infra_repor:
         for plugin_name in plugin_tables:
             for plugin_table in plugin_tables[plugin_name]:
                 for tablename in plugin_table:
-                    individual_table = plugin_table[tablename]
-                    headers = individual_table[0]
-                    print
-                    print "*"*10 + tablename + "*"*10
-                    print
-                    x = PrettyTable(headers)
-                    for header in headers:
-                       x.align[header] = "l"
-                    x.padding_width = 1
-                    rows = individual_table[1:]
-                    for row in rows:
-                        x.add_row(row)
-                    print x
+                    display = True
+                    historic_table = ha_infra_historical_tables.get(tablename,
+                                                                    False)
+                    if historic_table and show_historical:
+                        display = True
+                    elif not historic_table and show_historical:
+                        display = False
+                    elif historic_table and not show_historical:
+                        display = False
+                    elif not historic_table and not show_historical:
+                        display = True
+                    if display:
+                        individual_table = plugin_table[tablename]
+                        headers = individual_table[0]
+                        print
+                        print "*"*15 + tablename + "*"*15
+                        print
+                        x = PrettyTable(headers)
+                        for header in headers:
+                           x.align[header] = "l"
+                        x.padding_width = 1
+                        rows = individual_table[1:]
+                        for row in rows:
+                            x.add_row(row)
+                        print x
 
 
 def display_report(module, steps=None):
