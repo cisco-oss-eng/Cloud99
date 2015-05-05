@@ -12,7 +12,7 @@ from monitors.baseMonitor import BaseMonitor
 import ha_engine.ha_infra as infra
 
 SERVICE_LIST = [
-    {'service': 'neutron_server', 'role': 'controller'},
+    {'service': 'neutron-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
     {'service': 'glance-registry', 'role': 'controller'},
     {'service': 'foobar', 'role': 'controller'}]
@@ -174,6 +174,15 @@ class AnsibleRunner(object):
                     print "Operation \'failed\' [%s]" % node
                     results['status'] = 'FAIL'
 
+        #################################################
+        # Check for the return code 'rc' for each host.
+        #################################################
+        for node in results['contacted'].keys():
+            if results['contacted'][node]['rc'] != 0:
+                print "Operation \'return code\' %s on host %s" % \
+                    (results['contacted'][node]['rc'], node)
+                results['status'] = 'FAIL'
+
         ##################################################
         # Additional checks. If passed is a list of key/value
         # pairs that should be matched.
@@ -299,10 +308,41 @@ class AnsibleMonitor(BaseMonitor):
                                       module="shell",
                                       module_args=args)
 
-        #print "RESULTS:::: ", ansi_result['ansi_result']
-        host0 = ansi_result['ansi_result']['contacted'][host_list[0]]
+        msg = ""
+        if ansi_result['ansi_result']['status'] == 'PASS':
+            msg = "ANSIBLE MONITOR: Process Check [%s]: PASS" % process_name
+        else:
+            msg = "ANSIBLE MONITOR: Process Check [%s]: FAIL" % process_name
 
-        infra.display_on_terminal(self, host0['stdout'])
+        #print "RESULTS:::: ", ansi_result['ansi_result']
+        #host0 = ansi_result['ansi_result']['contacted'][host_list[0]]
+
+        infra.display_on_terminal(self, msg)
+
+        return ansi_result
+
+    def ansible_check_rabbitmq(self,
+                               host_list,
+                               remote_user):
+        '''
+        Check the RabbitMQ Status
+        '''
+        ansi_result = {}
+        ansi_result['name'] = "Rabbitmq_check"
+
+        args = "rabbitmqctl status | grep listeners"
+        ansi_result['ansi_result'] = self.ansirunner.\
+            ansible_perform_operation(host_list=host_list,
+                                      remote_user=remote_user,
+                                      module="shell",
+                                      module_args=args)
+        msg = ""
+        if ansi_result['ansi_result']['status'] == 'PASS':
+            msg = "ANSIBLE MONITOR: RabbitMQ Check: PASS"
+        else:
+            msg = "ANSIBLE MONITOR: RabbitMQ Check: FAIL"
+
+        infra.display_on_terminal(self, msg)
 
         return ansi_result
 
@@ -330,7 +370,7 @@ class AnsibleMonitor(BaseMonitor):
         control_ip_list = inventory.get_host_ip_list(role='controller')
         compute_ip_list = inventory.get_host_ip_list(role='compute')
         remote_user = inventory.get_host_username(host_list[0])
-        print "[all: %s], [control: %s] [compute: %s]" % \
+        print "Inventory: [all: %s], [control: %s] [compute: %s]" % \
             (host_ip_list, control_ip_list, compute_ip_list)
         print "Remote user: ", remote_user
         self.ansirunner = AnsibleRunner()
@@ -348,9 +388,13 @@ class AnsibleMonitor(BaseMonitor):
                 ansi_results = self.ansible_check_process(host_ip_list,
                                                           remote_user,
                                                           service['service'])
+                ts_results.append(ansi_results)
+
+            host_ip_list = inventory.get_host_ip_list(role='controller')
+            ansi_results = self.ansible_check_rabbitmq(host_ip_list,
+                                                       remote_user)
+
             ts_results.append(ansi_results)
-            infra.display_on_terminal(self,
-                                      "Ansible Module: test")
 
             # Add the ts results to main result list.
             self.ansiresults.append(ts_results)
