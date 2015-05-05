@@ -57,12 +57,5 @@ target/
 .ropeproject/
 *cscope*
 
-# Ignore temporary files created by unit tests.
-tests/data/tmpdir/
-
-# Ignore generated configuration files created by installer.
-system_configs/_openstack_manifest.yaml
-system_configs/cobbler_data.yaml
-
 #Ignore Swap files
 *.swp
