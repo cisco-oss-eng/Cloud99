@@ -41,7 +41,6 @@ class NagiosMonitor(BaseMonitor):
         pass
 
     def start(self, sync=None, finish_execution=None):
-
         format_string = "%s %s  %s  %s  %s "
 
         i = 0

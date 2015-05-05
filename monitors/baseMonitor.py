@@ -12,7 +12,6 @@ class BaseMonitor(object):
             self.set_input_arguments(input_args)
 
     def set_input_arguments(self, input_args):
-
         self.input_args = input_args
         LOG.info("Self, input %s " , str(self.input_args))
 

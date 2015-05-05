@@ -23,22 +23,15 @@ class Disruptor(BaseDisruptor):
 
         infra.display_on_terminal(self, "My input args are %s ", str(input_args))
         infra.display_on_terminal(self, "Openstack Config %s", str(host_config))
-        '''
-        if sync:
-            infra.display_on_terminal(self, "DISRUPTOR Going to wait......... ")
-            sync.wait()
-        '''
-        #infra.notify_all_waiters(sync)
+
         infra.display_on_terminal(self,
                                   "BAREMETAL DISRUPTOR GOT THE NOTIFICATION.... REBOOTING ")
         while infra.is_execution_completed(self.finish_execution) is False:
 
             infra.display_on_terminal(self, "REBOOTING THE NODE--------> ")
-            #infra.ssh_and_execute_command()
             time.sleep(1)
 
         infra.display_on_terminal(self, "BAREMETAL TERMINATING.........")
-        #self.send_notification(state = 'Started')
 
     def start_disruption(self, sync=None, finish_execution=None):
         pass

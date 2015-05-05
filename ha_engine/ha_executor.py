@@ -19,7 +19,6 @@ class HAExecutor(object):
         Get the resource form haparser as input parameter and creates
         all the objects that are needed to run the executor.
         """
-
         # Resoruce from haparser
         self.executor_threads = []
         self.executor_data = parser.parsed_executor_config
@@ -29,7 +28,7 @@ class HAExecutor(object):
         self.finish_execution_objects = {}
         self.open_pipes = []
         self.xterm_position = ["120x35-100-100", "120x35+100-100",
-                               "120x35+100+100", "120x35-100+100"]
+                               "120x35+100+100", "120x35-100+100"]*10
 
         if self.executor_data:
             ha_infra.dump_on_console(self.executor_data, "Executor Data")
@@ -168,8 +167,6 @@ class HAExecutor(object):
                 ha_infra.add_subscribers_for_module(node, step_info)
             elif step_action in plugin_commands:
                 if parallel:
-                    print "Creating a thread for " + node
-
                     pipe_path = self.infra_path + module_name
                     if not os.path.exists(self.infra_path):
                         LOG.info("Creating a file path for " + pipe_path)
@@ -185,6 +182,7 @@ class HAExecutor(object):
                     pos = self.get_xterm_position()
                     subprocess.Popen(['xterm', '-geometry', pos,
                                       '-e', 'tail', '-f', pipe_path])
+                    print "Creating a thread for " + node
                     t = threading.Thread(target=self.execute_the_command,
                                             args=(class_object, step_action,
                                             sync, finish_execution))

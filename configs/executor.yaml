@@ -1,7 +1,15 @@
 executors:
+    # mode and repeat are mandatory for each block
     -
+        # Create Disruptions in the cloud
         mode: parallel
         repeat: 1
-        #node_disruption : [control-1]
+        node_disruption : [control-1]
+        execute: [rally_sanity]
         start: [openstack_api]
+    -
+        # Run your sanity scripts
+        mode: parallel
+        repeat: 1
+        execute: [rally_sanity]
     -

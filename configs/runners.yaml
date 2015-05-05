@@ -1,11 +1,6 @@
 runners:
     rally:
-        keystone_authentication:
-            scenario_name: keystone
-            scenario_file: keystone.json
-        #scenario_2:
-        #    scenario_name: Volume
-    tempest:
-        testcase_1:
-            api:
-            neutron:
+        rally_sanity:
+            scenario_name: sanity
+            rally_path: /usr/local/bin/rally
+            scenario_file: /Users/pradeech/harally/rally/rally_sanity.json

@@ -36,8 +36,13 @@ class HealthAPI(BaseMonitor):
         infra.create_report_table(self, self.table_name)
         infra.add_table_headers(self, self.table_name,
                                 ["Endpoint Check", "Status"])
-        self.health_check_start(cred)
 
+        if sync:
+            infra.display_on_terminal(self, "Waiting for Runner Notification")
+            infra.wait_for_notification(sync)
+
+        infra.display_on_terminal(self, "Received notification from Runner")
+        self.health_check_start(cred)
 
 
     def health_check_start(self, cred):

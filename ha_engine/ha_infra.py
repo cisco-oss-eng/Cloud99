@@ -151,6 +151,9 @@ def ha_exit(num):
     if num == 0:
         sys.exit(num)
 
+def wait_for_notification(sync):
+    if sync:
+        sync.wait()
 
 def dump_on_console(info, title):
     print "---- " + title + " ---- "
@@ -205,6 +208,7 @@ def singleton(class_name):
         return created_class_objects[key]
 
     return get_instance
+
 
 def execute_the_command(command,
                         pattern=None,
@@ -316,7 +320,11 @@ def display_on_terminal(self, *kwargs):
     """
     pipe_path = get_my_pipe_path(self)
     with open(pipe_path, "w") as p:
-        output = get_plugin_name(self) + " :: " + str("".join(kwargs)) + "\n"
+        data = str("".join(kwargs))
+        if data.endswith("\n") is False:
+            data += "\n"
+
+        output = get_plugin_name(self) + " :: " + data
         p.write(output)
 
 def get_openstack_config():
@@ -325,6 +333,15 @@ def get_openstack_config():
     :return: dict
     """
     return ha_parser.HAParser().openstack_config
+
+def follow(thefile):
+    thefile.seek(0, 2)
+    while True:
+        line = thefile.readline()
+        if not line:
+            time.sleep(0.1)
+            continue
+        yield line
 
 @singleton
 class HAinfra(object):

@@ -19,9 +19,9 @@ monitors:
         libvirt:
             ip:
             pid:
-    nagiosMonitor:
+    nagiosmonitor:
         nagios:
-            ip: <cloud information>
+            ip: 12.2
             a:
             b:
     healthapi:
