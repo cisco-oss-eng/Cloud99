@@ -3,9 +3,11 @@ disruptors:
        # Controller where all control plane are combined in one node (common case)
        allinone_ controller:
            role : controller
+
        # All in one controller with seperate network node(common case)
        allinone_controller_1:
            role: controller_1
+
        # Below options define where each service is running on seperate node
        # If this does not fit use custom controller option
        rabbitmq_controller:
@@ -30,6 +32,7 @@ disruptors:
            role: horizon
        compute_node:
            role: compute
+
        # Where specific services are running in a controller
        custom_controller:
            role: nova, cinder

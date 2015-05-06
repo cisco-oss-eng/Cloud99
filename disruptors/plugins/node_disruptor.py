@@ -1,4 +1,4 @@
-disruptors/baseDisruptor.pyfrom disruptors.baseDisruptor import BaseDisruptor
+from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
 import time
 
