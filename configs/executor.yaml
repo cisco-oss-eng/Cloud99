@@ -7,10 +7,5 @@ executors:
         #node_disruption : [control-1]
         #execute: [rally_sanity]
         #start: [openstack_api]
-        start: [nagioscfg,nagios]
-    -
-        # Run your sanity scripts
-        mode: parallel
-        repeat: 1
-        execute: [rally_sanity]
+        start: [nagioscfg]
     -

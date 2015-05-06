@@ -158,15 +158,33 @@ class HAParser(object):
                         class_names = inspect.getmembers(loaded_mod,
                                                          inspect.isclass)
                         for clas_name in class_names:
+                            if clas_name[0].lower().startswith('base'):
+                                base_class_name = clas_name[0]
+                                LOG.info("Loading the Class %s",
+                                         base_class_name)
+                                try:
+                                    loaded_base_class = \
+                                        getattr(loaded_mod, base_class_name)
+                                    break
+                                except AttributeError as err:
+                                    LOG.critical("Cannot load base class %s "
+                                                 "from mod %s",
+                                                 base_class_name, loaded_mod)
+
+                        for clas_name in class_names:
                             if not clas_name[0].lower().startswith('base'):
                                 class_name = clas_name[0]
-                                break
-                        LOG.info("Loading the Class %s", class_name)
-                        try:
-                            loaded_class = getattr(loaded_mod, class_name)
-                        except AttributeError as err:
-                            LOG.critical("Cannot load class %s from mod %s",
-                                         class_name, loaded_mod)
+                                LOG.info("Loading the Class %s", class_name)
+                                try:
+                                    loaded_class = getattr(loaded_mod,
+                                                           class_name)
+                                    if issubclass(loaded_class,
+                                                  loaded_base_class):
+                                        break
+                                except AttributeError as err:
+                                    LOG.critical("Cannot load class %s "
+                                                 "from mod %s",
+                                                 class_name, loaded_mod)
 
                         # Create an instance of the class
                         file_mod_name = filename[:-3]

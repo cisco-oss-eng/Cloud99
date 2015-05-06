@@ -1,8 +1,5 @@
-import os
-import sys
-import ha_engine.ha_infra as infra
 from monitors.baseMonitor import BaseMonitor
-from utils.nagios_cfg_generator import NagiosConfigGen
+from monitors.plugins.nagios_monitor.nagios_cfg_generator import NagiosConfigGen
 
 class NagiosConfigSetter(BaseMonitor):
 
