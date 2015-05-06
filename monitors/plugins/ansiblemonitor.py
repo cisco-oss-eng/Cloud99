@@ -178,7 +178,8 @@ class AnsibleRunner(object):
         # Check for the return code 'rc' for each host.
         #################################################
         for node in results['contacted'].keys():
-            if results['contacted'][node]['rc'] != 0:
+            rc = results['contacted'][node].get('rc', None)
+            if rc is not None and rc != 0:
                 print "Operation \'return code\' %s on host %s" % \
                     (results['contacted'][node]['rc'], node)
                 results['status'] = 'FAIL'
@@ -292,6 +293,29 @@ class AnsibleMonitor(BaseMonitor):
 
         return timestamp
 
+    def ansible_ssh_ping_check(self,
+                               host_list,
+                               remote_user):
+        '''
+        Basic ping and ssh check
+        '''
+        ansi_result = {}
+        ansi_result['name'] = "ssh_ping_check"
+
+        ansi_result['ansi_result'] = self.ansirunner.\
+            ansible_perform_operation(host_list=host_list,
+                                      remote_user=remote_user,
+                                      module="ping")
+        msg = ""
+        if ansi_result['ansi_result']['status'] == 'PASS':
+            msg = "ANSIBLE MONITOR: Ssh & Ping Check: PASS"
+        else:
+            msg = "ANSIBLE MONITOR: SSh & Ping Check: FAIL"
+
+        infra.display_on_terminal(self, msg)
+
+        return ansi_result
+
     def ansible_check_process(self,
                               host_list, remote_user, process_name):
         '''
@@ -366,7 +390,6 @@ class AnsibleMonitor(BaseMonitor):
         else:
             msg = "ANSIBLE MONITOR: MariaDB Check: FAIL"
 
-        print "ANSI RESULT: ", ansi_result['ansi_result']
         infra.display_on_terminal(self, msg)
 
         return ansi_result
@@ -379,8 +402,10 @@ class AnsibleMonitor(BaseMonitor):
         infra.create_report_table(self, "Ansible Monitoring Summary")
         infra.add_table_headers(self, "Ansible Monitoring Summary",
                                 ["Timestamp",
-                                 "RabbitMQ monitoring",
-                                 "Process monitoring"])
+                                 "SSH & Ping",
+                                 "RabbitMQ",
+                                 "MariaDB",
+                                 "Process"])
         rows = []
         for ts_results in self.ansiresults:
             print "=========================================="
@@ -398,7 +423,11 @@ class AnsibleMonitor(BaseMonitor):
                 if name == "process_check":
                     if results['ansi_result']['status'] == 'FAIL':
                         process_check_status = 'FAIL'
+                if name == "ssh_ping_check":
+                    singlerow.append(results['ansi_result']['status'])
                 if name == "rabbitmq_check":
+                    singlerow.append(results['ansi_result']['status'])
+                if name == "mariadb_check":
                     singlerow.append(results['ansi_result']['status'])
             singlerow.append(process_check_status)
 
@@ -408,7 +437,6 @@ class AnsibleMonitor(BaseMonitor):
                              "Ansible Monitoring Summary",
                              rows)
         infra.display_infra_report()
-
 
     def start(self, sync=None, finish_execution=None, args=None):
         '''
@@ -451,6 +479,13 @@ class AnsibleMonitor(BaseMonitor):
             ts = self.get_monitor_timestamp()
             ts_results.append({'name': 'ts', 'ts': ts})
 
+            # Ping and SSH Check.
+            host_ip_list = inventory.get_host_ip_list()
+            ansi_results = self.ansible_ssh_ping_check(host_ip_list,
+                                                       remote_user)
+            ts_results.append(ansi_results)
+
+            # Process check.
             for service in SERVICE_LIST:
                 host_ip_list = inventory.get_host_ip_list(role=service['role'])
                 ansi_results = self.ansible_check_process(host_ip_list,
@@ -458,13 +493,16 @@ class AnsibleMonitor(BaseMonitor):
                                                           service['service'])
                 ts_results.append(ansi_results)
 
+            # RabbitMQ Check.
             host_ip_list = inventory.get_host_ip_list(role='controller')
             ansi_results = self.ansible_check_rabbitmq(host_ip_list,
                                                        remote_user)
             ts_results.append(ansi_results)
 
+            # MariaDB Check.
             ansi_results = self.ansible_check_mariadb(host_ip_list,
                                                       remote_user)
+            ts_results.append(ansi_results)
 
             # Add the ts results to main result list.
             self.ansiresults.append(ts_results)
