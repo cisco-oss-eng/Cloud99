@@ -210,9 +210,7 @@ def singleton(class_name):
     return get_instance
 
 
-def execute_the_command(command,
-                        pattern=None,
-                        cwd=None):
+def execute_the_command(command, pattern=None):
 
     LOG.info("Executing the command %s", str(command))
 
@@ -241,17 +239,12 @@ def is_execution_completed(finish_execution):
     if finish_execution:
         return finish_execution.isSet()
 
-def ssh_and_execute_command(ip, username, password, command, timeout=10):
-    """
-    Method to establish a ssh connection and execute the command
-    on the node
-    :param ip:
-    :param username:
-    :param password:
-    :param command:
-    """
-    node_ssh = SSH(username, ip, password=password)
-    timeout = timeout
+
+def ssh_and_execute_command(ip, username, password, command, timeout=10,
+                            pkey=None, key_filename=None):
+
+    node_ssh = SSH(username, ip, password=password,
+                   pkey=pkey, key_filename=key_filename)
     try:
         code, out, err = node_ssh.execute(command, timeout=timeout)
         if out:

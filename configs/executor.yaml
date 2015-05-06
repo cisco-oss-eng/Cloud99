@@ -7,5 +7,5 @@ executors:
         #node_disruption : [control-1]
         #execute: [rally_sanity]
         #start: [openstack_api]
-        start: [nagioscfg]
+        process_disruption: [disrupt_nova_api]
     -

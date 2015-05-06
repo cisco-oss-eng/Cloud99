@@ -62,8 +62,7 @@ class NagiosMonitor(BaseMonitor):
             self.printServiceStateReport(self.reportDict)
             time.sleep(20)
     
-    @staticmethod
-    def processAndReport(data,reportDict,host_filter,filterType):
+    def processAndReport(self, data,reportDict,host_filter,filterType):
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
         ret = []
         for ip in data:
@@ -165,7 +164,7 @@ class NagiosMonitor(BaseMonitor):
         elif status == '1':
 	    return "WARNING" 
         else:
-	    return "CRITICAL" 
+	        return "CRITICAL"
 	
     @staticmethod
     def splitLines(result,ret):
@@ -188,7 +187,7 @@ class NagiosMonitor(BaseMonitor):
 		    ret.append(res)
 		line=w
 	    else:
-	   	line="%s %s" % (line,w)
+	   	    line="%s %s" % (line,w)
 	if line != "":
 	    res={}
 	    res["ip"] = " "

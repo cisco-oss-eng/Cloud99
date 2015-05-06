@@ -91,6 +91,9 @@ class HAParser(object):
         self.parsed_executor_config = self.parse_and_load_input_file(
             self.user_input_file)
 
+        self.parsed_disruptor_config = \
+            self.parse_and_load_input_file(infra_source_path +
+                                           "/configs/disruptors.yaml")
         self.parsed_monitor_config = \
             self.parse_and_load_input_file(infra_source_path +
                                            "/configs/monitors.yaml")
@@ -274,6 +277,7 @@ class HAParser(object):
 
         self.openstack_config = dict(self.parse_and_load_input_file(
             complete_openstack_config))
+        '''
         disruptor_yaml = \
             openstack_config + "/configs/ha_configs/disruptors.yaml"
 
@@ -289,6 +293,7 @@ class HAParser(object):
         self.parsed_disruptor_config = \
             self.parse_and_load_input_file(openstack_config +
                                            "/configs/ha_configs/disruptors.yaml")
+        '''
 
     @staticmethod
     def dump_dict_to_yaml(data, yaml_file=None):
