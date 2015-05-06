@@ -70,6 +70,10 @@ class HAExecutor(object):
                     LOG.info("Sync is requested within the block")
                     use_sync = executor_block.get('sync', False)
 
+                ha_interval = None
+                if 'ha_interval' in executor_block:
+                    ha_interval = executor_block.get('ha_interval', None)
+
                 LOG.info("Block will be repeated %s times", repeat_count)
                 # Repeat count in each steps
                 for i in range(repeat_count):
@@ -103,7 +107,7 @@ class HAExecutor(object):
                             self.execute_the_block(executor_index,
                                                    nodes,
                                                    step_action,
-                                                   executor_block,
+                                                   ha_interval,
                                                    parallel=parallel,
                                                    use_sync=use_sync)
 
@@ -132,7 +136,7 @@ class HAExecutor(object):
             os.unlink(f)
 
     def execute_the_block(self, executor_index, nodes, step_action,
-                          step_info, parallel=False, use_sync=False):
+                          ha_interval, parallel=False, use_sync=False):
 
         node_list = []
         if isinstance(nodes, list):
@@ -171,8 +175,6 @@ class HAExecutor(object):
                 ha_infra.display_report(class_object, step_action)
             elif step_action in ha_parser.PUBLISHER_CMDS:
                 pass
-            elif step_action in ha_parser.SUBSCRIBER_CMDS:
-                ha_infra.add_subscribers_for_module(node, step_info)
             elif step_action in plugin_commands:
                 if parallel:
                     pipe_path_dir = self.infra_path + module_name
@@ -195,22 +197,21 @@ class HAExecutor(object):
                                       '-e', 'tail', '-f', pipe_path])
                     LOG.info("Creating a thread for %s", node)
                     t = multiprocessing.Process(target=self.execute_the_command,
-                                            args=(class_object, node, step_action,
-                                            sync, finish_execution))
+                                            args=(class_object, node,
+                                                  step_action, ha_interval,
+                                                  sync, finish_execution))
                     self.executor_threads.append(t)
                 else:
-                    self.execute_the_command(class_object, step_action)
+                    LOG.critical("Sequence mode is not supported")
+                    #self.execute_the_command(class_object, step_action)
             elif step_action in ha_parser.BUILT_IN_CMDS:
                 getattr(self, step_action)(node)
             else:
                 LOG.critical('Unknown command: %s' % str(step_action))
                 ha_infra.ha_exit(0)
     @staticmethod
-    def execute_the_command(class_object, node, cmd, sync=None,
+    def execute_the_command(class_object, node, cmd, ha_interval, sync=None,
                             finish_execution=None):
-        """
-        Execute the command
-        """
         if class_object and cmd:
             entire_block_arguments = getattr(class_object,
                                              "get_input_arguments")()
@@ -219,8 +220,10 @@ class HAExecutor(object):
                     actual_arguments = block_arg
                     getattr(class_object,
                             "set_input_arguments")(actual_arguments)
+        if ha_interval:
+            setattr(class_object, "ha_interval", ha_interval)
 
-            getattr(class_object, cmd)(sync=sync,
+        getattr(class_object, cmd)(sync=sync,
                                         finish_execution=finish_execution)
 
     @staticmethod

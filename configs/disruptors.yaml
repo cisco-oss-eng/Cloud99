@@ -39,7 +39,7 @@ disruptors:
        
     process_disruptor:
        nova_api:
-           process_name : openstack-nova-compute
+           process_name : openstack-nova-api.service
            role : controller
            type : graceful
        neutron_api:

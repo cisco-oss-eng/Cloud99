@@ -1,12 +1,19 @@
 executors:
     # mode and repeat are mandatory for each block
+    # mode =  parallel|sequence -> execution mode
+    # repeat = number of times to repeat the block
+    # ha_interval = interval time between disruptions
+    # sync = true|false -> enable synchronization within the block
     -
-        # Create Disruptions in the cloud
+        # infra parameters
         mode: parallel
         repeat: 1
         sync: false
+        ha_interval: 10
+
+        # disruption scenario
         #node_disruption : [glance_controller, neutron_controller]
         #execute: [rally_sanity]
         start: [openstack_api]
-        #process_disruption: [disrupt_nova_api]
+        process_disruption: [nova_api]
     -

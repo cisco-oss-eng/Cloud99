@@ -1,8 +1,5 @@
 from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
-import time
-
-import os
 
 LOG = infra.ha_logging(__name__)
 
@@ -47,6 +44,7 @@ class NodeDisruptor(BaseDisruptor):
 
     def set_report(self):
         pass
+
     def display_report(self):
         pass
 
