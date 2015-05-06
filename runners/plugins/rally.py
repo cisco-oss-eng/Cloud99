@@ -13,7 +13,6 @@ class RallyRunner(BaseRunner):
 
     def execute(self, sync=None, finish_execution=None):
         input_args = self.get_input_arguments()
-        subscribers = infra.get_subscribers_list()
         infra.display_on_terminal(self, "Executing Rally Runner Plugin")
 
         if sync:
@@ -21,11 +20,8 @@ class RallyRunner(BaseRunner):
             rally_path = input_args[0]['rally_sanity']['rally_path']
             scenario_file = input_args[0]['rally_sanity']['scenario_file']
             rally_command = rally_path + " -v task start " + scenario_file
+
             pattern = "Benchmarking... This can take a while..."
-
-            # out = infra.execute_the_command(rally_command, pattern=pattern)
-            out = infra.execute_the_command(rally_command)
-
             proc = subprocess.Popen(rally_command,
                                     shell=True,
                                     stdout=subprocess.PIPE,
@@ -47,11 +43,6 @@ class RallyRunner(BaseRunner):
 
     def teardown(self):
        infra.display_on_terminal(self,"Tearing down the runner")
-
-    def notify(self, *args, **kwargs):
-        infra.display_on_terminal(self,'Args is  %s', str(args))
-        for key, value in kwargs.iteritems():
-            infra.display_on_terminal(self,'Got Notification with key %s, value %s' %(key, value))
 
     def is_module_exeution_completed(self, finish_exection):
         return infra.is_execution_completed(finish_execution=self.finish_execution)

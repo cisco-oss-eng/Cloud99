@@ -14,11 +14,12 @@ LOG = infra.ha_logging(__name__)
 class HealthAPI(BaseMonitor):
     # Create Table and add header
     table_endpoint_check = "Health Status: Endpoint Check"
-    
+    finish_execution = None
 
     def start(self, sync=None, finish_execution=None, mode="basic"):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
         input_args = self.get_input_arguments()
+        self.finish_execution = finish_execution
         if 'openrc_file' in input_args[0]['openstack_api']:
             openrc = input_args[0]['openstack_api']['openrc_file']
         else:
@@ -37,7 +38,6 @@ class HealthAPI(BaseMonitor):
         infra.create_report_table(self, self.table_endpoint_check)
         infra.add_table_headers(self, self.table_endpoint_check,
                                 ["Endpoint", "Status"])
-        self.health_check_start(cred)
 
         if sync:
             infra.display_on_terminal(self, "Waiting for Runner Notification")
@@ -58,7 +58,7 @@ class HealthAPI(BaseMonitor):
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
         #while True:
-        for i in range(2):
+        while not self.finish_execution:
             self.nova_endpoint_check(nova_instance)
             self.neutron_endpoint_check(neutron_instance)
             self.keystone_endpoint_check(keystone_instance)
