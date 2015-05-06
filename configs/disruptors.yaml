@@ -1,9 +1,44 @@
 disruptors:
-    node_dirsuptor:
-        node_host_name:
+    node_disruptor:
+       # Controller where all control plane are combined in one node (common case)
+       allinone_ controller:
+           role : controller
+       # All in one controller with seperate network node(common case)
+       allinone_controller_1:
+           role: controller_1
+       # Below options define where each service is running on seperate node
+       # If this does not fit use custom controller option
+       rabbitmq_controller:
+           role : rabbit
+       galera_controller:
+           role:  mysql
+       haproxy_controller:
+           role:  haproxy
+       keystone_controller:
+           role:  keystone
+       glance_controller:
+           role:  glance
+       network_controller:
+           role : network
+       neutron_controller:
+           role : neutron_api
+       nova_controller:
+           role: nova
+       cinder_controller:
+           role: cinder
+       horizon_controller:
+           role: horizon
+       compute_node:
+           role: compute
+       # Where specific services are running in a controller
+       custom_controller:
+           role: nova, cinder
+       
     process_disruptor:
-        disrupt_nova_api:
-            role: controller_nodes
-            graceful: yes
-
+       nova_api:
+           role : controller
+           type : graceful
+       neutron_api:
+           role: controller
+           type: graceful
 
