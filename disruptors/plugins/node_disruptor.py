@@ -1,4 +1,4 @@
-from disruptors.baseDisruptor import BaseDisruptor
+disruptors/baseDisruptor.pyfrom disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
 import time
 
@@ -24,11 +24,12 @@ class NodeDisruptor(BaseDisruptor):
         infra.display_on_terminal(self, "My input args are %s ", str(input_args))
         infra.display_on_terminal(self, "Openstack Config %s", str(host_config))
 
+        '''
         while infra.is_execution_completed(self.finish_execution) is False:
 
             infra.display_on_terminal(self, "Rebooting the node ** ")
             time.sleep(1)
-
+        '''
         infra.display_on_terminal(self, "Exiting the Baremetal Plugin")
 
     def process_disruption(self, sync=None, finish_execution=None):

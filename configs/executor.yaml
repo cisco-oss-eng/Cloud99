@@ -4,7 +4,8 @@ executors:
         # Create Disruptions in the cloud
         mode: parallel
         repeat: 1
-        #node_disruption : [control-1]
+        sync: false
+        #node_disruption : [glance_controller, neutron_controller]
         #execute: [rally_sanity]
         start: [openstack_api]
         #process_disruption: [disrupt_nova_api]

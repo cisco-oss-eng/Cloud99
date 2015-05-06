@@ -21,6 +21,10 @@ class ProcessDisruptor(BaseDisruptor):
         infra.display_on_terminal(self, "Plugin Args -> ", str(input_args))
         infra.display_on_terminal(self, "Openstack Config -> ", str(host_config))
 
+        for node in host_config:
+            if 'controller' in host_config[node].get('role', None):
+                infra.display_on_terminal(self, node, "will be disrupted ")
+
     def node_disruption(self, sync=None, finish_execution=None):
         pass
 

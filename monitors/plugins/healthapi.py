@@ -20,12 +20,12 @@ class HealthAPI(BaseMonitor):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
         input_args = self.get_input_arguments()
         self.finish_execution = finish_execution
-        if 'openrc_file' in input_args[0]['openstack_api']:
-            openrc = input_args[0]['openstack_api']['openrc_file']
+        if 'openrc_file' in input_args['openstack_api']:
+            openrc = input_args['openstack_api']['openrc_file']
         else:
             openrc = None
-        if 'password' in input_args[0]['openstack_api']:
-            password = input_args[0]['openstack_api']['password']
+        if 'password' in input_args['openstack_api']:
+            password = input_args['openstack_api']['password']
         else:
             password = None
         
@@ -57,8 +57,7 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        #while True:
-        while infra.is_execution_completed(self.finish_execution):
+        while infra.is_execution_completed(self.finish_execution) is False:
             self.nova_endpoint_check(nova_instance)
             self.neutron_endpoint_check(neutron_instance)
             self.keystone_endpoint_check(keystone_instance)

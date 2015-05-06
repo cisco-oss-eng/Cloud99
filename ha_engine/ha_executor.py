@@ -65,6 +65,11 @@ class HAExecutor(object):
                     repeat_count = executor_block.get('repeat', 1)
                     executor_block.pop('repeat')
 
+                use_sync = False
+                if 'sync' in executor_block:
+                    LOG.info("Sync is requested within the block")
+                    use_sync = executor_block.get('sync', False)
+
                 LOG.info("Block will be repeated %s times", repeat_count)
                 # Repeat count in each steps
                 for i in range(repeat_count):
@@ -99,7 +104,8 @@ class HAExecutor(object):
                                                    nodes,
                                                    step_action,
                                                    executor_block,
-                                                   parallel=parallel)
+                                                   parallel=parallel,
+                                                   use_sync=use_sync)
 
                         if self.executor_threads:
                             # start all the executor threads
@@ -125,8 +131,8 @@ class HAExecutor(object):
         for f in self.open_pipes:
             os.unlink(f)
 
-    def execute_the_block(self, executor_index,
-                          nodes, step_action, step_info, parallel=False):
+    def execute_the_block(self, executor_index, nodes, step_action,
+                          step_info, parallel=False, use_sync=False):
 
         node_list = []
         if isinstance(nodes, list):
@@ -135,11 +141,12 @@ class HAExecutor(object):
         sync = None
         finish_execution = None
         if parallel:
-            if self.sync_objects.get(executor_index, None):
-                sync = self.sync_objects[executor_index]
-            else:
-                sync = threading.Event()
-                self.sync_objects[executor_index] = sync
+            if use_sync:
+                if self.sync_objects.get(executor_index, None):
+                    sync = self.sync_objects[executor_index]
+                else:
+                    sync = threading.Event()
+                    self.sync_objects[executor_index] = sync
             if self.finish_execution_objects.get(executor_index, None):
                 finish_execution = self.finish_execution_objects[executor_index]
             else:
@@ -148,6 +155,7 @@ class HAExecutor(object):
 
         for node in node_list:
             # find the module and class object of each node
+            pipe_path = None
             module_name = self.node_plugin_map.get(node, None)
             if module_name is None:
                 LOG.critical("Cannot find  module %s when trying to execute",
@@ -167,24 +175,27 @@ class HAExecutor(object):
                 ha_infra.add_subscribers_for_module(node, step_info)
             elif step_action in plugin_commands:
                 if parallel:
-                    pipe_path = self.infra_path + module_name
-                    if not os.path.exists(self.infra_path):
-                        LOG.info("Creating a file path for " + pipe_path)
+                    pipe_path_dir = self.infra_path + module_name
+                    if not os.path.exists(pipe_path_dir):
+                        LOG.info("Creating a file path for " + pipe_path_dir)
                         try:
                             original_umask = os.umask(0)
-                            os.makedirs(self.infra_path, 0777)
+                            os.makedirs(pipe_path_dir, 0777)
                         finally:
                             os.umask(original_umask)
 
-                        os.mkfifo(pipe_path)
+                    pipe_path = pipe_path_dir + "/" + node
+                    os.mkfifo(pipe_path)
 
-                    self.open_pipes.append(pipe_path)
+                    self.open_pipes.append(pipe_path_dir)
                     pos = self.get_xterm_position()
+
+                    LOG.info("XTERM of %s will read from %s", node, pipe_path)
                     subprocess.Popen(['xterm', '-geometry', pos,
                                       '-e', 'tail', '-f', pipe_path])
-                    print "Creating a thread for " + node
-                    t = threading.Thread(target=self.execute_the_command,
-                                            args=(class_object, step_action,
+                    LOG.info("Creating a thread for %s", node)
+                    t = multiprocessing.Process(target=self.execute_the_command,
+                                            args=(class_object, node, step_action,
                                             sync, finish_execution))
                     self.executor_threads.append(t)
                 else:
@@ -195,13 +206,21 @@ class HAExecutor(object):
                 LOG.critical('Unknown command: %s' % str(step_action))
                 ha_infra.ha_exit(0)
     @staticmethod
-    def execute_the_command(class_object, cmd, sync=None,
+    def execute_the_command(class_object, node, cmd, sync=None,
                             finish_execution=None):
         """
         Execute the command
         """
         if class_object and cmd:
-             getattr(class_object, cmd)(sync=sync,
+            entire_block_arguments = getattr(class_object,
+                                             "get_input_arguments")()
+            for block_arg in entire_block_arguments:
+                if node in block_arg:
+                    actual_arguments = block_arg
+                    getattr(class_object,
+                            "set_input_arguments")(actual_arguments)
+
+            getattr(class_object, cmd)(sync=sync,
                                         finish_execution=finish_execution)
 
     @staticmethod

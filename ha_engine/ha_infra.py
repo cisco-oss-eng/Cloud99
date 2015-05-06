@@ -298,11 +298,13 @@ def get_plugin_name(self):
 def get_my_pipe_path(self):
 
     path = get_plugin_name(self)
+    node = self.get_input_arguments().keys()[0]
 
-    pipe_path = "/tmp/ha_infra/" + path
+    pipe_path = "/tmp/ha_infra/" + path + "/" + node
     if not os.path.exists(pipe_path):
         LOG.critical("Path doesnt exist for %s", pipe_path)
         os.mkfifo(pipe_path)
+
 
     return pipe_path
 
