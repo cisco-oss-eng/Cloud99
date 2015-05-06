@@ -62,8 +62,8 @@ class NagiosMonitor(BaseMonitor):
             self.printServiceStateReport(self.reportDict)
             time.sleep(20)
     
-    @staticmethod
-    def processAndReport(data,reportDict,host_filter,filterType):
+    #@staticmethod
+    def processAndReport(self,data,reportDict,host_filter,filterType):
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
         ret = []
         for ip in data:
@@ -72,12 +72,15 @@ class NagiosMonitor(BaseMonitor):
                 result = {}
                 if host_filter != []:
                     if ip in host_filter:
-                        result = NagiosMonitor.createResultDict(data,ip,key)
+                        #result = NagiosMonitor.createResultDict(data,ip,key)
+                        result = self.createResultDict(data,ip,key)
                 elif filterType == "openstackvm":
                     if ip.startswith("AppVm-"):
-                        result = NagiosMonitor.createResultDict(data,ip,key)
+                        #result = NagiosMonitor.createResultDict(data,ip,key)
+                        result = self.createResultDict(data,ip,key)
                 else:
-                    result = NagiosMonitor.createResultDict(data,ip,key)
+                    #result = NagiosMonitor.createResultDict(data,ip,key)
+                    result = self.createResultDict(data,ip,key)
 
                 if len(result) <= 0:
                     continue
@@ -90,26 +93,42 @@ class NagiosMonitor(BaseMonitor):
                 NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,result["status"],
                                                          data[ip]["services"][key]["plugin_output"])
             #columns
-        print '-' * 157
+        #print '-' * 157
+        tblLine = '-' * 157
+        infra.display_on_terminal(self,tblLine)
+        """
         print NagiosMonitor.get_severity_color('INFO', format_string % (
                 'Time'.ljust(20),'HostName'.ljust(20),
                 "Service Description".ljust(45),
                 "Status".ljust(9), "Status Information".ljust(40)))
         print '-' * 160
+        """
+        infra.display_on_terminal(self,
+                NagiosMonitor.get_severity_color('INFO', format_string % (
+                'Time'.ljust(20),'HostName'.ljust(20),
+                "Service Description".ljust(45),
+                "Status".ljust(9), "Status Information".ljust(40))))
+        infra.display_on_terminal(self,tblLine)
+        #print '-' * 157
         for item in ret:
             if item.get("ip") == " " and item.get("description") == " ":
-                NagiosMonitor.printData(format_string,item)
+                #NagiosMonitor.printData(format_string,item)
+                self.printData(format_string,item)
                 continue
             if host_filter != []: 
                 if item.get("ip") in host_filter: 
-                    NagiosMonitor.printData(format_string,item)
+                    #NagiosMonitor.printData(format_string,item)
+                    self.printData(format_string,item)
             elif filterType == "openstackvm": 
                 if item.get("ip").startswith("AppVm-"):
-                    NagiosMonitor.printData(format_string,item)
+                    #NagiosMonitor.printData(format_string,item)
+                    self.printData(format_string,item)
             else:
-                NagiosMonitor.printData(format_string,item)
+                #NagiosMonitor.printData(format_string,item)
+                self.printData(format_string,item)
                 
-        print '-' * 157
+        #print '-' * 157
+        infra.display_on_terminal(self,tblLine)
 
     @staticmethod
     def generateFilterList(hostConfig,filterType):
@@ -139,14 +158,22 @@ class NagiosMonitor(BaseMonitor):
         else:
             return NagiosMonitor.get_severity_color("CRITICAL",statusDesc)
 
-    @staticmethod
-    def printData(format_string,item):
+    
+    def printData(self,format_string,item):
         #print format_string % (time.ctime(int(time.time())).ljust(25),
+        """
         print format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
                 item.get("ip").ljust(20),
                 item.get(NagiosMonitor.headers[1])[:40].ljust(45),
                 item.get("status").ljust(9),
                 item.get("output").ljust(40))
+        """
+        infra.display_on_terminal(self,format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
+                item.get("ip").ljust(20),
+                item.get(NagiosMonitor.headers[1])[:40].ljust(45),
+                item.get("status").ljust(9),
+                item.get("output").ljust(40)))
+
 
     @staticmethod
     def printServiceStateReport(reportDict):
