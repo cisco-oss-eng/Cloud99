@@ -4,9 +4,10 @@ executors:
         # Create Disruptions in the cloud
         mode: parallel
         repeat: 1
-        node_disruption : [control-1]
-        execute: [rally_sanity]
-        start: [openstack_api]
+        #node_disruption : [control-1]
+        #execute: [rally_sanity]
+        #start: [openstack_api]
+        start: [nagioscfg,nagios]
     -
         # Run your sanity scripts
         mode: parallel

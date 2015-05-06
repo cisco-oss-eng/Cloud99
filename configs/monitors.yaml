@@ -21,9 +21,9 @@ monitors:
             pid:
     nagiosmonitor:
         nagios:
-            ip: 12.2
-            a:
-            b:
+            type: node
+    nagioscfgset:
+        nagioscfg:
     ansiblemonitor:
         ansible:
             frequency: 5

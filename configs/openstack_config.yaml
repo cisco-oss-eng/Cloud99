@@ -1,20 +1,10 @@
 control-1:
-    ip:
-    user:
-    password:
-    role: controller
-control-2:
-    ip:
-    user:
-    password:
+    ip: 172.22.191.136
+    user: root
+    password: cisco123
     role: controller
 network-1:
-    ip:
-    user:
-    password:
-    role: network
-network-2:
-    ip:
-    user:
-    password:
+    ip: 172.22.191.137
+    user: root
+    password: cisco123
     role: network
