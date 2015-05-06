@@ -36,9 +36,54 @@ disruptors:
        
     process_disruptor:
        nova_api:
+           process_name : openstack-nova-compute
            role : controller
            type : graceful
        neutron_api:
+           process_name : neutron-server
            role: controller
            type: graceful
-
+       rabbitmq_api:
+           process_name: rabbitmq-server
+           role: controller
+           type: graceful
+       glance_api:
+           process_name: openstack-glance-api
+           role: controller
+           type: graceful
+       glance_registry:
+           process_name: openstack-glance-registry
+           role: controller
+           type: graceful
+       nova_novnc:
+           process_name: openstack-nova-novncproxy
+           role : controller
+           type: graceful
+       nova_conductor:
+           process_name : openstack-nova-conductor
+           role: controller
+           type: graceful
+       nova_scheduler:
+           process_name: openstack-nova-scheduler
+           role : controller
+           type: graceful
+       dhcp_agent:
+           process_name: neutron-dhcp-agent
+           role : controller
+           type: graceful
+       ovs_agent:
+           process_name: neutron-openvswitch-agent
+           role : controller
+           type: graceful
+       neutron_metadata:
+           process_name: neutron-metadata-agent
+           role: controller
+           type: graceful
+       neutron_l3:
+           process_name: neutron-l3-agent
+           role : controller
+           type: graceful
+       nova_compute:
+           process_name : openstack-nova-compute
+           role : compute
+           type: graceful
