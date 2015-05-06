@@ -1,4 +1,4 @@
-disruptors/plugins/node_disruptor.pyfrom disruptors.baseDisruptor import BaseDisruptor
+from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
 
 LOG = infra.ha_logging(__name__)

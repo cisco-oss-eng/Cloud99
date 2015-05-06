@@ -58,7 +58,7 @@ class HealthAPI(BaseMonitor):
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
         #while True:
-        while not self.finish_execution:
+        while infra.is_execution_completed(self.finish_execution):
             self.nova_endpoint_check(nova_instance)
             self.neutron_endpoint_check(neutron_instance)
             self.keystone_endpoint_check(keystone_instance)

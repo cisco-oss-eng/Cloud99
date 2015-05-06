@@ -6,6 +6,6 @@ executors:
         repeat: 1
         #node_disruption : [control-1]
         #execute: [rally_sanity]
-        #start: [openstack_api]
-        process_disruption: [disrupt_nova_api]
+        start: [openstack_api]
+        #process_disruption: [disrupt_nova_api]
     -
