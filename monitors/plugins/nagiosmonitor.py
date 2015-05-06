@@ -45,11 +45,11 @@ class NagiosMonitor(BaseMonitor):
     def start(self, sync=None, finish_execution=None):
 
         ip_address = self.get_config('nagios_ip')
-	input_args = self.get_input_arguments()
+        input_args = self.get_input_arguments()
         filterType = str(input_args[0]['nagios']['type'])
 
-	host_config = infra.get_openstack_config()
-	host_filter = []
+        host_config = infra.get_openstack_config()
+        host_filter = []
         if filterType == "node":
             host_filter = self.generateFilterList(host_config,filterType)
 
@@ -57,19 +57,20 @@ class NagiosMonitor(BaseMonitor):
         #while (not finish_execution):
         while(finish_execution):
             data = self.getNagiosData(self.url, ip_address)
-	    self.processAndReport(data,self.reportDict,host_filter,filterType) 
-	    #print self.reportDict
+            self.processAndReport(data,self.reportDict,host_filter,filterType) 
+            #print self.reportDict
             self.printServiceStateReport(self.reportDict)
             time.sleep(20)
     
-    def processAndReport(self, data,reportDict,host_filter,filterType):
+    @staticmethod
+    def processAndReport(data,reportDict,host_filter,filterType):
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
         ret = []
         for ip in data:
             hostService = data[ip]["services"]
             for key in hostService:
-		result = {}
-		if host_filter != []:
+                result = {}
+                if host_filter != []:
                     if ip in host_filter:
                         result = NagiosMonitor.createResultDict(data,ip,key)
                 elif filterType == "openstackvm":
@@ -112,7 +113,7 @@ class NagiosMonitor(BaseMonitor):
 
     @staticmethod
     def generateFilterList(hostConfig,filterType):
-	filterList = []
+        filterList = []
         if filterType == 'node':
             for key in hostConfig.keys():
                 if hostConfig[key]["role"] == "controller" or hostConfig[key]["role"] == "network" or hostConfig[key]["role"] == "compute":
@@ -127,28 +128,26 @@ class NagiosMonitor(BaseMonitor):
         statusStr = NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"])
         result["status"] = statusStr
         result["output"] = data[ip]["services"][key]["plugin_output"]
-	return result
-	
+        return result
+
     @staticmethod
     def updateStatusColor(status,statusDesc):
         if status == "OK":
             return statusDesc
         elif status == "WARNING":
-            return NagiosMonitor.get_severity_color("WARNING",
-							statusDesc)
+            return NagiosMonitor.get_severity_color("WARNING",statusDesc)
         else:
-            return NagiosMonitor.get_severity_color("CRITICAL",
-							statusDesc)
+            return NagiosMonitor.get_severity_color("CRITICAL",statusDesc)
 
     @staticmethod
     def printData(format_string,item):
         #print format_string % (time.ctime(int(time.time())).ljust(25),
         print format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
-				item.get("ip").ljust(20),
-                                item.get(NagiosMonitor.headers[1])[:40].ljust(45),
-                                item.get("status").ljust(9),
-                                item.get("output").ljust(40))
-	
+                item.get("ip").ljust(20),
+                item.get(NagiosMonitor.headers[1])[:40].ljust(45),
+                item.get("status").ljust(9),
+                item.get("output").ljust(40))
+
     @staticmethod
     def printServiceStateReport(reportDict):
         for dkey in reportDict:
@@ -162,39 +161,39 @@ class NagiosMonitor(BaseMonitor):
         if status == '0':
             return "OK"
         elif status == '1':
-	    return "WARNING" 
+            return "WARNING" 
         else:
-	        return "CRITICAL"
-	
+            return "CRITICAL" 
+
     @staticmethod
     def splitLines(result,ret):
-	wordList = result["output"].split( )
-	result["output"]=''
-	line=''
-	status=result["status"]
-	for w in wordList:
-	    if len(line)+len(w) > 40:
-	        if result["output"] == "":
-		    result["output"] = NagiosMonitor.updateStatusColor(status,line)
-		    result["status"] = NagiosMonitor.updateStatusColor(status,result["status"])
-		    ret.append(result)
-		else:
-		    res={}
-		    res["ip"] = " "
-		    res["description"] = " "
-		    res["output"] = NagiosMonitor.updateStatusColor(status,line)
-		    res["status"] = " "
-		    ret.append(res)
-		line=w
-	    else:
-	   	    line="%s %s" % (line,w)
-	if line != "":
-	    res={}
-	    res["ip"] = " "
-	    res["description"] = " "
-	    res["output"] = NagiosMonitor.updateStatusColor(status,line)
-	    res["status"] = " "
-	    ret.append(res)
+        wordList = result["output"].split( )
+        result["output"]=''
+        line=''
+        status=result["status"]
+        for w in wordList:
+            if len(line)+len(w) > 40:
+                if result["output"] == "":
+                    result["output"] = NagiosMonitor.updateStatusColor(status,line)
+                    result["status"] = NagiosMonitor.updateStatusColor(status,result["status"])
+                    ret.append(result)
+                else:
+                    res={}
+                    res["ip"] = " "
+                    res["description"] = " "
+                    res["output"] = NagiosMonitor.updateStatusColor(status,line)
+                    res["status"] = " "
+                    ret.append(res)
+                line=w
+            else:
+                line="%s %s" % (line,w)
+        if line != "":
+            res={}
+            res["ip"] = " "
+            res["description"] = " "
+            res["output"] = NagiosMonitor.updateStatusColor(status,line)
+            res["status"] = " "
+            ret.append(res)
 
     @staticmethod
     def getNagiosData(url, ipaddress):
@@ -238,15 +237,15 @@ class NagiosMonitor(BaseMonitor):
 
     @staticmethod
     def collectFlappingServiceData(ip,desc,reportDict,status,ldesc):
-	dkey="%s##%s" % (ip,desc)
-	if reportDict.has_key(dkey):
-		ipDescStatusList = reportDict.get(dkey)
-		timeStampStatusTup = ipDescStatusList[0]
-		if timeStampStatusTup[1] != status:
-			tsst=(time.time(),status,ldesc)
-			ipDescStatusList.insert(0,tsst)
-	elif status != 'OK':
-		ipDescStatusList=[]
-		tsst=(time.time(),status,ldesc)
-		ipDescStatusList.insert(0,tsst)
-		reportDict[dkey]=ipDescStatusList
+        dkey="%s##%s" % (ip,desc)
+        if reportDict.has_key(dkey):
+            ipDescStatusList = reportDict.get(dkey)
+            timeStampStatusTup = ipDescStatusList[0]
+            if timeStampStatusTup[1] != status:
+                tsst=(time.time(),status,ldesc)
+                ipDescStatusList.insert(0,tsst)
+        elif status != 'OK':
+            ipDescStatusList=[]
+            tsst=(time.time(),status,ldesc)
+            ipDescStatusList.insert(0,tsst)
+            reportDict[dkey]=ipDescStatusList

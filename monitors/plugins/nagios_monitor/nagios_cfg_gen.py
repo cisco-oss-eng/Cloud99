@@ -42,12 +42,11 @@ class NagiosConfigGenUtil(object):
 
 	@staticmethod
 	def generate_nagios_appvm_config(ipaddress,host_name,role):
-	        
 		check_commands = [('check-vm-external-http','HTTP external network reachability check','t'),\
-                                  ('check-vm-external-ssh','SSH external network reachability check','t'),\
-                                  ('check-vm-storage-access','Storage access check','t'),\
-                                  ('check_ssh','SSH Connectivity Check','f'),\
-                                  ('check_ping!100.0,20%!500.0,60%','PING','f')]
+							('check-vm-external-ssh','SSH external network reachability check','t'),\
+							('check-vm-storage-access','Storage access check','t'),\
+							('check_ssh','SSH Connectivity Check','f'),\
+							('check_ping!100.0,20%!500.0,60%','PING','f')]
 
 		file_path = os.getcwd() + os.sep + 'nagios_vm_host.cfg'
 		serviceCfgFile = os.getcwd() + os.sep + 'nagios_vm_service.cfg'
@@ -77,14 +76,14 @@ class NagiosConfigGenUtil(object):
 				 ('nova-list','Nova Service List','t'),\
 				 ('neutron-service-list','Neutron Service List','t'),\
 				 ('neutron-net-list','Neutron Network List','t'),\
-                                 ('check_ping!100.0,20%!500.0,60%','PING','f')]
+				 ('check_ping!100.0,20%!500.0,60%','PING','f')]
 		"""
 		controller_nag_cmds = [('check_ping!100.0,20%!500.0,60%','PING','f'),\
-                                      ('check_ssh','SSH','f')]
+								('check_ssh','SSH','f')]
 		network_nag_cmds = [('check_ping!100.0,20%!500.0,60%','PING','f'),\
-                                    ('check_ssh','SSH','f')]
+								('check_ssh','SSH','f')]
 		compute_nag_cmds = [('check_ping!100.0,20%!500.0,60%','PING','f'),\
-                                    ('check_ssh','SSH','f')]
+								('check_ssh','SSH','f')]
 
 		file_path = os.getcwd() + os.sep + 'nagios_host.cfg'
 		serviceCfgFile = os.getcwd() + os.sep + 'nagios_service.cfg'

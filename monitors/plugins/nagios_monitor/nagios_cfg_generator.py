@@ -1,11 +1,8 @@
-import os
-
 import yaml
-
+import os
 import ssh.sshutils as ssh
-from host_object import HostObject
-from monitors.plugins.nagios_monitor.nagios_cfg_gen import NagiosConfigGenUtil
-
+from hostObj import HostObject
+from nagios_cfg_gen import NagiosConfigGenUtil
 
 class NagiosConfigGen(object):
 
@@ -30,34 +27,33 @@ class NagiosConfigGen(object):
     def setOpenstackNodeIp(self):
         #print self.hostYamlObj
         for key in self.hostYamlObj.keys():
-	    ip = self.hostYamlObj[key]["ip"]
-	    hostname = key
-	    username = self.hostYamlObj[key]["user"]
-	    password = self.hostYamlObj[key]["password"]
-	    role = self.hostYamlObj[key]["role"]
+            ip = self.hostYamlObj[key]["ip"]
+            hostname = key
+            username = self.hostYamlObj[key]["user"]
+            password = self.hostYamlObj[key]["password"]
+            role = self.hostYamlObj[key]["role"]
             hstObj = HostObject(hostname,ip,username,password,role,False)
-	    self.openstack_host_list.append(hstObj)
-	    #print self.openstack_host_list
+            self.openstack_host_list.append(hstObj)
 
     def setOpenstackAppVmIp(self,appVmIpFile):
         abs_path = os.getcwd() + os.sep + 'configs/%s' % appVmIpFile
-	try:
+        try:
             fp = open(abs_path)
         except IOError as e:
             print "Error while opening the file...%s" % e
             return
-	ipList = fp.readlines()
-	fp.close()
-	ctr=1
+        ipList = fp.readlines()
+        fp.close()
+        ctr=1
         for ip in ipList:
-	    hostname = "AppVm-0%s" % str(ctr)
-	    username = ""
-	    password = ""
-	    role = "appvm"
+            hostname = "AppVm-0%s" % str(ctr)
+            username = ""
+            password = ""
+            role = "appvm"
             hstObj = HostObject(hostname,ip.rstrip(),username,password,role,False)
-	    self.openstack_vm_list.append(hstObj)
-	    ctr+=1
-	print self.openstack_vm_list
+            self.openstack_vm_list.append(hstObj)
+            ctr+=1
+        print self.openstack_vm_list
 
     def performNagiosServiceCheck(self):
         for hostObj in self.openstack_host_list:
@@ -65,13 +61,13 @@ class NagiosConfigGen(object):
             user = hostObj.getUser()
             pwd = hostObj.getPassword()
             session = ssh.SSH(user,ip,password=pwd)
-	    output = session.execute('service nrpe status | grep Active: | grep running')
+            output = session.execute('service nrpe status | grep Active: | grep running')
             if output[1] != '':
                 print "NRPE running in - %s " % hostObj.getHost()
-		hostObj.setNagios(True)
+                hostObj.setNagios(True)
             else:
                 print "NRPE is not running in - %s " % hostObj.getHost()
-		hostObj.setNagios(False)
+                hostObj.setNagios(False)
     
     def printHostList(self):
         for hostObj in self.openstack_host_list:
@@ -97,4 +93,4 @@ if __name__ == '__main__':
     yhp.setOpenstackAppVmIp("appvmlist")
     yhp.printHostList()
     yhp.generateNagiosAppVmConfig()
-    
+  
