@@ -315,10 +315,10 @@ class AnsibleMonitor(BaseMonitor):
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
             msg = "Ssh & Ping Check:".ljust(40) + "PASS".ljust(10)
+            infra.display_on_terminal(self, msg, "color=green")
         else:
             msg = "SSh & Ping Check:".ljust(40) + "FAIL".ljust(10)
-
-        infra.display_on_terminal(self, msg)
+            infra.display_on_terminal(self, msg, "color=red")
 
         return ansi_result
 
@@ -342,13 +342,13 @@ class AnsibleMonitor(BaseMonitor):
         pmsg = "Process Check [%s]" % process_name
         if ansi_result['ansi_result']['status'] == 'PASS':
             msg = pmsg.ljust(40) + "PASS".ljust(10)
+            infra.display_on_terminal(self, msg, "color=green")
         else:
             msg = pmsg.ljust(40) + "FAIL".ljust(10)
+            infra.display_on_terminal(self, msg, "color=red")
 
         #print "RESULTS:::: ", ansi_result['ansi_result']
         #host0 = ansi_result['ansi_result']['contacted'][host_list[0]]
-
-        infra.display_on_terminal(self, msg)
 
         return ansi_result
 
@@ -370,10 +370,10 @@ class AnsibleMonitor(BaseMonitor):
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
             msg = "RabbitMQ Check:".ljust(40) + "PASS".ljust(10)
+            infra.display_on_terminal(self, msg, "color=green")
         else:
             msg = "RabbitMQ Check:".ljust(40) + "FAIL".ljust(10)
-
-        infra.display_on_terminal(self, msg)
+            infra.display_on_terminal(self, msg, "color=red")
 
         return ansi_result
 
@@ -395,10 +395,10 @@ class AnsibleMonitor(BaseMonitor):
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
             msg = "MariaDB Check:".ljust(40) + "PASS".ljust(10)
+            infra.display_on_terminal(self, msg, "color=green")
         else:
             msg = "MariaDB Check:".ljust(40) + "FAIL".ljust(10)
-
-        infra.display_on_terminal(self, msg)
+            infra.display_on_terminal(self, msg, "color=red")
 
         return ansi_result
 
