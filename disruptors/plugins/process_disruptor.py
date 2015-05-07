@@ -69,6 +69,12 @@ class ProcessDisruptor(BaseDisruptor):
                                                          rhel_start_command)
                 time.sleep(ha_interval)
 
+        # bring it back to stable state
+        infra.display_on_terminal(self, "Bringing the process  to stable state")
+        infra.display_on_terminal(self, "Executing ", rhel_start_command)
+        code, out, error = infra.ssh_and_execute_command(ip, user, password,
+                                                         rhel_start_command)
+
         infra.display_on_terminal(self, "Finishing Process Disruption")
     def node_disruption(self, sync=None, finish_execution=None):
         pass
