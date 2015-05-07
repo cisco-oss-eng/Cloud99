@@ -49,21 +49,33 @@ class NagiosMonitor(BaseMonitor):
         filterType = str(input_args[0]['nagios']['type'])
 
         host_config = infra.get_openstack_config()
+        print host_config
+        print "================ "+filterType
         host_filter = []
         if filterType == "node":
             host_filter = self.generateFilterList(host_config,filterType)
 
         # Execution starts here
         #while (not finish_execution):
+        startTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        ctr = 0
         while(finish_execution):
             data = self.getNagiosData(self.url, ip_address)
             self.processAndReport(data,self.reportDict,host_filter,filterType) 
             #print self.reportDict
             self.printServiceStateReport(self.reportDict)
             time.sleep(20)
+            ctr+=1
+            if ctr == 10:
+                break
+        endTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        NagiosMonitor.writeToFile(self.reportDict,startTime,endTime)
+        
     
     #@staticmethod
     def processAndReport(self,data,reportDict,host_filter,filterType):
+        print "================"+filterType
+        print host_filter
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
         ret = []
         for ip in data:
@@ -90,10 +102,12 @@ class NagiosMonitor(BaseMonitor):
                 else:
                     NagiosMonitor.splitLines(result,ret)
                 
-                NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,result["status"],
+                NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,
+                                                         NagiosMonitor.getStatusStr(data[ip]["services"][key]
+                                                                                    ["current_state"]),
                                                          data[ip]["services"][key]["plugin_output"])
             #columns
-        #print '-' * 157
+        print '-' * 157
         tblLine = '-' * 157
         infra.display_on_terminal(self,tblLine)
         """
@@ -109,6 +123,7 @@ class NagiosMonitor(BaseMonitor):
                 "Service Description".ljust(45),
                 "Status".ljust(9), "Status Information".ljust(40))))
         infra.display_on_terminal(self,tblLine)
+        
         #print '-' * 157
         for item in ret:
             if item.get("ip") == " " and item.get("description") == " ":
@@ -161,13 +176,12 @@ class NagiosMonitor(BaseMonitor):
     
     def printData(self,format_string,item):
         #print format_string % (time.ctime(int(time.time())).ljust(25),
-        """
         print format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
                 item.get("ip").ljust(20),
                 item.get(NagiosMonitor.headers[1])[:40].ljust(45),
                 item.get("status").ljust(9),
                 item.get("output").ljust(40))
-        """
+        
         infra.display_on_terminal(self,format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
                 item.get("ip").ljust(20),
                 item.get(NagiosMonitor.headers[1])[:40].ljust(45),
@@ -182,6 +196,21 @@ class NagiosMonitor(BaseMonitor):
             for tup in serviceList:
                 lst = dkey.split("##")
                 print "%s,%s,%s,%s,%s" % (lst[0],lst[1],time.ctime(int(tup[0])),tup[1],tup[2])
+    
+    @staticmethod
+    def writeToFile(reportDict,stime,etime):
+        
+        f = open("/tmp/nrecord",'w+')
+        f.write("starttime##"+stime+"\n")
+        for dkey in reportDict:
+            serviceList = reportDict.get(dkey)
+            for tup in serviceList:
+                lst = dkey.split("##")
+                print "%s,%s,%s,%s,%s" % (lst[0],lst[1],time.ctime(int(tup[0])),tup[1],tup[2])
+                d = datetime.datetime.fromtimestamp(int(tup[0])).strftime('%Y-%m-%d %H:%M:%S')
+                f.write("%s,%s,%s,%s,%s\n" % (lst[0],lst[1],d,tup[1],tup[2]))
+        f.write("endtime##"+etime+"\n")
+        f.close()
 
     @staticmethod
     def getStatusStr(status):
@@ -267,12 +296,13 @@ class NagiosMonitor(BaseMonitor):
         dkey="%s##%s" % (ip,desc)
         if reportDict.has_key(dkey):
             ipDescStatusList = reportDict.get(dkey)
-            timeStampStatusTup = ipDescStatusList[0]
+            listLen = len(ipDescStatusList)
+            timeStampStatusTup = ipDescStatusList[listLen - 1]
             if timeStampStatusTup[1] != status:
                 tsst=(time.time(),status,ldesc)
-                ipDescStatusList.insert(0,tsst)
-        elif status != 'OK':
+                ipDescStatusList.append(tsst)
+        else:
             ipDescStatusList=[]
             tsst=(time.time(),status,ldesc)
-            ipDescStatusList.insert(0,tsst)
+            ipDescStatusList.append(tsst)
             reportDict[dkey]=ipDescStatusList
