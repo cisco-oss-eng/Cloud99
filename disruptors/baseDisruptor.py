@@ -43,4 +43,5 @@ class BaseDisruptor(object):
     def is_module_exeution_completed(self, finish_exection):
         raise NotImplementedError('Subclass should implement this method')
 
-
+    def get_ha_interval(self):
+        return self.ha_interval

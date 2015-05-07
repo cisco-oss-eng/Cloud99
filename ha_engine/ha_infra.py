@@ -3,12 +3,13 @@ import sys
 from prettytable import PrettyTable
 import pprint
 import collections
-import ssh.sshutils as SSH
+from ssh.sshutils import SSH
 import subprocess
 import time
 import re
 import ha_parser
 import os
+from fpdb import  ForkedPdb as fdb
 
 LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
@@ -252,8 +253,10 @@ def ssh_and_execute_command(ip, username, password, command, timeout=10,
         elif err:
             LOG.error("Error while executing the command %s on node %s ",
                       err, ip)
+        return (code, out, err)
     except Exception:
         LOG.error("Exception when trying to SSH in to node %s ", ip)
+        return None, None, None
 
 
 def ping_ip_address(host, should_succeed=True):
@@ -305,8 +308,12 @@ def get_my_pipe_path(self):
         LOG.critical("Path doesnt exist for %s", pipe_path)
         os.mkfifo(pipe_path)
 
-
     return pipe_path
+
+
+def clear_ther_terminal(self):
+    pipe_path = get_my_pipe_path(self)
+
 
 def display_on_terminal(self, *kwargs):
     """

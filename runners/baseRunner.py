@@ -23,7 +23,6 @@ class BaseRunner(object):
     def get_input_arguments(self):
         return self.input_args
 
-
     def execute(self, sync=None, finish_execution=None):
         raise NotImplementedError('Subclass should implement this method')
 
@@ -55,4 +54,5 @@ class BaseRunner(object):
         else:
             LOG.warning('Notification list is not configured')
 
-
+    def get_ha_interval(self):
+        return self.ha_interval
