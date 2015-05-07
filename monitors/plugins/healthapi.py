@@ -121,8 +121,6 @@ class HealthAPI(BaseMonitor):
             if detail == False:
                 infra.display_on_terminal(self, "Nova Endpoint Check: OK")
                 results['nova'] = 'OK'
-                self.update_downtime_dict('nova', 'host-1', 'FAIL')
-                self.update_downtime_dict('nova', 'host-2', 'OK')
             else:
                 for service in service_list:
                     service_dict = {}
@@ -134,6 +132,10 @@ class HealthAPI(BaseMonitor):
                     service_dict['host'] = service.host
                     service_dict['Status'] = service.status
                     service_dict['State'] = service.state
+                    if service.state == 'down':
+                        self.update_downtime_dict(service.binary, service.host, 'FAIL')
+                    else:
+                        self.update_downtime_dict(service.binary, service.host, 'OK')
                     results.append(service_dict)
         else:
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED")
@@ -156,8 +158,6 @@ class HealthAPI(BaseMonitor):
             if detail == False:
                 infra.display_on_terminal(self, "Neutron Endpoint Check: OK")
                 results['neutron'] = 'OK'
-                self.update_downtime_dict('neutron', 'host-1', 'FAIL')
-                self.update_downtime_dict('neutron', 'host-2', 'OK')
             else:
                 for agent in agent_list:
                     agent_dict = {}
@@ -168,13 +168,15 @@ class HealthAPI(BaseMonitor):
                     agent_dict['service'] = agent['binary']
                     agent_dict['host'] = agent['host']
                     if agent['alive']:
-                        agent_dict['Status'] = 'UP'
+                        agent_dict['Status'] = 'OK'
                     else:
-                        agent_dict['Status'] = 'DOWN'
+                        agent_dict['Status'] = 'FAIL'
                     if agent['admin_state_up']:
-                        agent_dict['State'] = 'UP'
+                        agent_dict['State'] = 'OK'
                     else:
-                        agent_dict['State'] = 'DOWN'
+                        agent_dict['State'] = 'FAIL'
+
+                    self.update_downtime_dict(agent['binary'], agent['host'], agent_dict['Status'])
                     results.append(agent_dict)
         else:
             if detail == True:
@@ -196,8 +198,6 @@ class HealthAPI(BaseMonitor):
         if status == 200:
             infra.display_on_terminal(self, "Keystone Endpoint Check: OK")
             results['keystone'] = 'OK'
-            self.update_downtime_dict('keystone', 'host-1', 'FAIL')
-            self.update_downtime_dict('keystone', 'host-2', 'OK')
         else:
             infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL")
             results['keystone'] = 'FAIL'
@@ -207,8 +207,6 @@ class HealthAPI(BaseMonitor):
         if status == 200:
             infra.display_on_terminal(self, "Glance endpoint Check: OK")
             results['glance'] = 'OK'
-            self.update_downtime_dict('glance', 'host-1', 'FAIL')
-            self.update_downtime_dict('glance', 'host-2', 'OK')
         else:
             infra.display_on_terminal(self, "Glance endpoint Check: FAILED")
             results['glance'] = 'FAIL'
@@ -218,8 +216,6 @@ class HealthAPI(BaseMonitor):
         if status == 200:
             infra.display_on_terminal(self, "Cinder endpoint Check : OK")
             results['cinder'] = 'OK'
-            self.update_downtime_dict('cinder', 'host-1', 'FAIL')
-            self.update_downtime_dict('cinder', 'host-2', 'OK')
         else:
             infra.display_on_terminal(self, "Cinder endpoint Check: FAILED")
             results['cinder'] = 'FAIL'
