@@ -46,7 +46,7 @@ class NagiosMonitor(BaseMonitor):
 
         ip_address = self.get_config('nagios_ip')
         input_args = self.get_input_arguments()
-        filterType = str(input_args[0]['nagios']['type'])
+        filterType = str(input_args['nagios']['type'])
 
         host_config = infra.get_openstack_config()
         print host_config
