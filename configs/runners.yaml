@@ -3,4 +3,4 @@ runners:
         rally_sanity:
             scenario_name: sanity
             rally_path: /usr/local/bin/rally
-            scenario_file: /Users/pradeech/infraRally/rally/rally_sanity.json
+            scenario_file: /Users/pradeech/infraRally/rally/samples/tasks/scenarios/nova/boot.json

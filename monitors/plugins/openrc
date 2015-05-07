@@ -7,12 +7,11 @@
 #
 # *NOTE*: Using the 2.0 *auth api* does not mean that compute api is 2.0.  We
 # will use the 1.1 *compute api*
-export OS_AUTH_URL=http://172.22.191.191:5000/v2.0
+export OS_AUTH_URL=http://172.29.87.40:5000/v2.0
 
 # With the addition of Keystone we have standardized on the term **tenant**
 # as the entity that owns the resources.
-export OS_TENANT_ID=79d0a470484c4732a365a71a28700bb0
-#export OS_TENANT_ID=9831b373681945c3be71bb096dd455d2
+export OS_TENANT_ID=90e397129edc41be85f6bf444ca85850
 export OS_TENANT_NAME="admin"
 
 # In addition to the owning entity (tenant), openstack stores the entity
@@ -20,11 +19,12 @@ export OS_TENANT_NAME="admin"
 export OS_USERNAME="admin"
 
 # With Keystone you pass the keystone password.
-export OS_PASSWORD="password"
+echo "Please enter your OpenStack Password: "
+read -sr OS_PASSWORD_INPUT
+export OS_PASSWORD=$OS_PASSWORD_INPUT
 
 # If your configuration has multiple regions, we set that information here.
 # OS_REGION_NAME is optional and only valid in certain environments.
 export OS_REGION_NAME="RegionOne"
 # Don't leave a blank variable, unset it if it was empty
 if [ -z "$OS_REGION_NAME" ]; then unset OS_REGION_NAME; fi
-

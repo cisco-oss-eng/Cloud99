@@ -9,10 +9,12 @@ executors:
         mode: parallel
         repeat: 1
         sync: true
-        ha_interval: 10
+        ha_interval: 120
+
+
         # disruption scenario
         #node_disruption : [glance_controller, neutron_controller]
         execute: [rally_sanity]
         start: [openstack_api]
-        process_disruption: [nova_api, neutron_api, glance_api]
+        process_disruption: [nova_scheduler]
     -

@@ -67,7 +67,7 @@ disruptors:
            role: controller
            type: graceful
        nova_scheduler:
-           process_name: openstack-nova-scheduler
+           process_name: openstack-nova-scheduler.service
            role : controller
            type: graceful
        dhcp_agent:
