@@ -149,12 +149,12 @@ class HAExecutor(object):
                 if self.sync_objects.get(executor_index, None):
                     sync = self.sync_objects[executor_index]
                 else:
-                    sync = threading.Event()
+                    sync = multiprocessing.Event()
                     self.sync_objects[executor_index] = sync
             if self.finish_execution_objects.get(executor_index, None):
                 finish_execution = self.finish_execution_objects[executor_index]
             else:
-                finish_execution = threading.Event()
+                finish_execution = multiprocessing.Event()
                 self.finish_execution_objects[executor_index] = finish_execution
 
         for node in node_list:

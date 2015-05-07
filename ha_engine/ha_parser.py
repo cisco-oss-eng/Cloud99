@@ -232,9 +232,7 @@ class HAParser(object):
                     for plugin_data_item in plugin_data:
                         for plugin_item, item_data in \
                                 plugin_data[plugin_data_item].items():
-                            plugin_key = (plugin + "::" + plugin_data_item
-                                                 #+ "::" + plugin_item
-                                                  )
+                            plugin_key = plugin + "::" + plugin_data_item
                             self.node_plugin_map[plugin_item] = \
                                 plugin_data_item
                             if self.plugin_input_data.get(plugin_key, None):

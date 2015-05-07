@@ -42,12 +42,13 @@ class HealthAPI(BaseMonitor):
         self.endpoint_results = collections.deque(maxlen=max_entries)
         self.service_results = collections.deque(maxlen=max_entries)
  
-
         if sync:
             infra.display_on_terminal(self, "Waiting for Runner Notification")
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
+
         self.health_check_start()
+        infra.display_on_terminal(self, "Finished Monitoring")
 
 
     def health_check_start(self):
@@ -60,11 +61,11 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        for x in range(10):
-        #while infra.is_execution_completed(self.finish_execution) is False:
+        #for x in range(10):
+        while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
-            
+
             self.ts = utils.utils.get_monitor_timestamp()
             ep_results['timestamp'] = self.ts
             self.nova_endpoint_check(nova_instance, ep_results)
@@ -128,10 +129,10 @@ class HealthAPI(BaseMonitor):
             if detail == True:
                 service_dict = {}
                 service_dict['ts'] = self.ts
-                service_dict['service'] ='NA'
+                service_dict['service'] ='nova-api'
                 service_dict['host'] = 'NA'
-                service_dict['Status'] = NA
-                service_dict['State'] = NA
+                service_dict['Status'] = 'NA'
+                service_dict['State'] = 'NA'
                 results.append(service_dict)
             else:
                 results['nova'] = 'FAIL'
@@ -165,7 +166,7 @@ class HealthAPI(BaseMonitor):
             if detail == True:
                 agent_dict = {}
                 agent_dict['ts'] = self.ts
-                agent_dict['Service'] = 'NA'
+                agent_dict['Service'] = 'neutron-server'
                 agent_dict['host'] = 'NA'
                 agent_dict['Status'] = 'NA'
                 agent_dict['State'] = 'NA'

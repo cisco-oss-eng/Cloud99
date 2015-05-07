@@ -238,7 +238,7 @@ def set_execution_completed(finish_execution):
 
 def is_execution_completed(finish_execution):
     if finish_execution:
-        return finish_execution.isSet()
+        return finish_execution.is_set()
 
 
 def ssh_and_execute_command(ip, username, password, command, timeout=10,

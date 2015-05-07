@@ -40,8 +40,13 @@ class ProcessDisruptor(BaseDisruptor):
         rhel_stop_command = "systemctl stop " + process_name
         rhel_start_command = "systemctl start " + process_name
 
+        if sync:
+            infra.display_on_terminal(self, "Waiting for notification")
+            infra.wait_for_notification(sync)
+            infra.display_on_terminal(self, "Received notification, Starting")
+
         ha_interval = self.get_ha_interval()
-        while True:
+        while infra.is_execution_completed(self.finish_execution) is False:
             for node in nodes_to_be_disrupted:
                 ip = host_config.get(node, None).get('ip', None)
                 user = host_config.get(node, None).get('user', None)
@@ -55,7 +60,7 @@ class ProcessDisruptor(BaseDisruptor):
                                                             rhel_stop_command)
 
                 infra.display_on_terminal(self, "Sleeping for interval ",
-                                      str(ha_interval), "seconds")
+                                      str(ha_interval), " seconds")
                 time.sleep(ha_interval)
                 infra.display_on_terminal(self, "Starting ", process_name)
                 infra.display_on_terminal(self, "Executing ", rhel_start_command)
@@ -64,6 +69,7 @@ class ProcessDisruptor(BaseDisruptor):
                                                          rhel_start_command)
                 time.sleep(ha_interval)
 
+        infra.display_on_terminal(self, "Finishing Process Disruption")
     def node_disruption(self, sync=None, finish_execution=None):
         pass
 

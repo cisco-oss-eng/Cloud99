@@ -43,7 +43,7 @@ disruptors:
            role : controller
            type : graceful
        neutron_api:
-           process_name : neutron-server
+           process_name : neutron-server.service
            role: controller
            type: graceful
        rabbitmq_api:
@@ -51,7 +51,7 @@ disruptors:
            role: controller
            type: graceful
        glance_api:
-           process_name: openstack-glance-api
+           process_name: openstack-glance-api.service
            role: controller
            type: graceful
        glance_registry:
