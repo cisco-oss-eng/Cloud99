@@ -2,7 +2,7 @@ import re
 import subprocess
 import json
 import time
-
+import datetime
 import os
 
 def parse_input_file(input_file):
@@ -91,3 +91,14 @@ def get_absolute_path_for_file(path, file_name, splitdir=None):
                                      file_name)
 
     return abs_file_path
+
+def get_monitor_timestamp():
+    '''
+    Return the timestamp that will be added to the
+    results.
+    '''
+    dt = datetime.datetime.now()
+    timestamp = "%s:%s:%s-%s/%s/%s" % (dt.hour, dt.minute, dt.second,
+                                           dt.month, dt.day, dt.year)
+
+    return timestamp
