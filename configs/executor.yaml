@@ -14,6 +14,7 @@ executors:
         # disruption scenario
         #node_disruption : [glance_controller, neutron_controller]
         #execute: [rally_sanity]
-        start: [openstack_api]
-        process_disruption: [nova_api]
+        #start: [openstack_api]
+        start: [ansible]
+        #process_disruption: [nova_api]
     -

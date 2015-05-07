@@ -27,7 +27,11 @@ monitors:
     ansiblemonitor:
         ansible:
             frequency: 5
+            max_hist: 25
             sudo: False
+            mariadb:
+              user: root
+              password: 7711238d48b844f9 
     healthapi:
         openstack_api:
             openrc_file:
