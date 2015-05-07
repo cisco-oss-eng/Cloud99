@@ -60,13 +60,13 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        for x in range(5):
+        for x in range(10):
         #while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
-            svc_results = {}
+            svc_results = []
             
-            ep_results['timestamp'] = utils.utils.get_monitor_timestamp()
-            svc_results['timestamp'] = utils.utils.get_monitor_timestamp()
+            self.ts = utils.utils.get_monitor_timestamp()
+            ep_results['timestamp'] = self.ts
             self.nova_endpoint_check(nova_instance, ep_results)
             self.neutron_endpoint_check(neutron_instance , ep_results)
             self.keystone_endpoint_check(keystone_instance, ep_results)
@@ -94,12 +94,14 @@ class HealthAPI(BaseMonitor):
                                     [endpoint['timestamp'], endpoint['nova'],
                                    endpoint['neutron'], endpoint['keystone'],
                                             endpoint['glance'], endpoint['cinder']]])
+        """
         for service in self.service_results:
             infra.add_table_rows(self, self.table_service_check,
                                  [
                                     [service['timestamp'], service['service'],
                                      service['host'], service['Status'],
                                      service['State']]])
+        """
         infra.display_infra_report()
     
 
@@ -111,20 +113,26 @@ class HealthAPI(BaseMonitor):
                 results['nova'] = 'OK'
             else:
                 for service in service_list:
+                    service_dict = {}
                     service_data = "Binary=%s   Host=%s   Status=%s   State=%s" %(service.binary, service.host,
                                                                                   service.status, service.state)
                     infra.display_on_terminal(self, service_data)
-                    results['service'] = service.binary
-                    results['host'] = service.host
-                    results['Status'] = service.status
-                    results['State'] = service.state
+                    service_dict['ts'] = self.ts
+                    service_dict['service'] = service.binary
+                    service_dict['host'] = service.host
+                    service_dict['Status'] = service.status
+                    service_dict['State'] = service.state
+                    results.append(service_dict)
         else:
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED")
             if detail == True:
-                results['service'] ='NA'
-                results['host'] = 'NA'
-                results['Status'] = NA
-                results['State'] = NA
+                service_dict = {}
+                service_dict['ts'] = self.ts
+                service_dict['service'] ='NA'
+                service_dict['host'] = 'NA'
+                service_dict['Status'] = NA
+                service_dict['State'] = NA
+                results.append(service_dict)
             else:
                 results['nova'] = 'FAIL'
             
@@ -137,25 +145,31 @@ class HealthAPI(BaseMonitor):
                 results['neutron'] = 'OK'
             else:
                 for agent in agent_list:
+                    agent_dict = {}
                     agent_data = "Agent=%s   Host=%s   Alive=%s   Admin State=%s" % (agent['binary'], agent['host'],
                                                                                      agent['alive'], agent['admin_state_up'])
                     infra.display_on_terminal(self, agent_data)
-                    results['service'] = agent['binary']
-                    results['host'] = agent['host']
+                    agent_dict['ts'] = self.ts
+                    agent_dict['service'] = agent['binary']
+                    agent_dict['host'] = agent['host']
                     if agent['alive']:
-                        results['Status'] = 'UP'
+                        agent_dict['Status'] = 'UP'
                     else:
-                        results['Status'] = 'DOWN'
+                        agent_dict['Status'] = 'DOWN'
                     if agent['admin_state_up']:
-                        results['State'] = 'UP'
+                        agent_dict['State'] = 'UP'
                     else:
-                        results['State'] = 'DOWN'
+                        agent_dict['State'] = 'DOWN'
+                    results.append(agent_dict)
         else:
             if detail == True:
-                results['Service'] = 'NA'
-                results['host'] = 'NA'
-                results['Status'] = 'NA'
-                results['State'] = 'NA'
+                agent_dict = {}
+                agent_dict['ts'] = self.ts
+                agent_dict['Service'] = 'NA'
+                agent_dict['host'] = 'NA'
+                agent_dict['Status'] = 'NA'
+                agent_dict['State'] = 'NA'
+                results.append(agent_dict)
             else:
                 results['neutron'] = 'FAIL'
             infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL")

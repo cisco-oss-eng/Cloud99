@@ -32,6 +32,6 @@ monitors:
         openstack_api:
             openrc_file:
             password:
-            frequency: 5
+            frequency: 1 
             max_entries: 20
 
