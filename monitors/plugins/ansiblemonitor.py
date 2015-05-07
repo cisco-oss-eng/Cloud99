@@ -10,12 +10,12 @@ import collections
 import ansible.runner
 from monitors.baseMonitor import BaseMonitor
 import ha_engine.ha_infra as infra
+import utils.utils as utils
 
 SERVICE_LIST = [
     {'service': 'neutron-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
-    {'service': 'glance-registry', 'role': 'controller'},
-    {'service': 'foobar', 'role': 'controller'}]
+    {'service': 'glance-registry', 'role': 'controller'}]
 
 
 def get_absolute_path_for_file(path, file_name, splitdir=None):
@@ -156,6 +156,7 @@ class AnsibleRunner(object):
         Valdiate results from the Anisble Run.
         '''
         results['status'] = 'PASS'
+        failed_hosts = []
 
         ###################################################
         # First validation is to make sure connectivity to
@@ -163,6 +164,7 @@ class AnsibleRunner(object):
         ###################################################
         if results['dark']:
             print "Host connectivity issues on %s " % results['dark'].keys()
+            failed_hosts.append(results['dark'].keys())
             results['status'] = 'FAIL'
 
         ##################################################
@@ -172,6 +174,7 @@ class AnsibleRunner(object):
             if 'failed' in results['contacted'][node]:
                 if results['contacted'][node]['failed'] is True:
                     print "Operation \'failed\' [%s]" % node
+                    failed_hosts.append(node)
                     results['status'] = 'FAIL'
 
         #################################################
@@ -182,6 +185,7 @@ class AnsibleRunner(object):
             if rc is not None and rc != 0:
                 print "Operation \'return code\' %s on host %s" % \
                     (results['contacted'][node]['rc'], node)
+                failed_hosts.append(node)
                 results['status'] = 'FAIL'
 
         ##################################################
@@ -190,7 +194,7 @@ class AnsibleRunner(object):
         ##################################################
         if checks is None:
             print "No additional checks validated"
-            return results
+            return results, failed_hosts
 
         for check in checks:
             key = check.keys()[0]
@@ -200,8 +204,10 @@ class AnsibleRunner(object):
                     if results['contacted'][node][key] != value:
                         print "Check %s failed. Expected: [%s] found: [%s]" % \
                             (check, value, results['contacted'][node][key])
+                        failed_hosts.append(node)
                         results['status'] = 'FAIL'
-        return results
+
+        return (results, failed_hosts)
 
     def ansible_perform_operation(self,
                                   host_list=None,
@@ -236,10 +242,10 @@ class AnsibleRunner(object):
 
         results = runner.run()
 
-        results = self.validate_results(results)
+        results, failed_hosts = self.validate_results(results)
         if results['status'] != 'PASS':
-            print "ANSIBLE: [%s] operation failed [%s]" % \
-                (module, complex_args)
+            print "ANSIBLE: [%s] operation failed [%s] [hosts: %s]" % \
+                (module, complex_args, failed_hosts)
 
         return results
 
@@ -308,9 +314,9 @@ class AnsibleMonitor(BaseMonitor):
                                       module="ping")
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "ANSIBLE MONITOR: Ssh & Ping Check: PASS"
+            msg = "Ssh & Ping Check:".ljust(40) + "PASS".ljust(10)
         else:
-            msg = "ANSIBLE MONITOR: SSh & Ping Check: FAIL"
+            msg = "SSh & Ping Check:".ljust(40) + "FAIL".ljust(10)
 
         infra.display_on_terminal(self, msg)
 
@@ -333,10 +339,11 @@ class AnsibleMonitor(BaseMonitor):
                                       module_args=args)
 
         msg = ""
+        pmsg = "Process Check [%s]" % process_name
         if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "ANSIBLE MONITOR: Process Check [%s]: PASS" % process_name
+            msg = pmsg.ljust(40) + "PASS".ljust(10)
         else:
-            msg = "ANSIBLE MONITOR: Process Check [%s]: FAIL" % process_name
+            msg = pmsg.ljust(40) + "FAIL".ljust(10)
 
         #print "RESULTS:::: ", ansi_result['ansi_result']
         #host0 = ansi_result['ansi_result']['contacted'][host_list[0]]
@@ -362,9 +369,9 @@ class AnsibleMonitor(BaseMonitor):
                                       module_args=args)
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "ANSIBLE MONITOR: RabbitMQ Check: PASS"
+            msg = "RabbitMQ Check:".ljust(40) + "PASS".ljust(10)
         else:
-            msg = "ANSIBLE MONITOR: RabbitMQ Check: FAIL"
+            msg = "RabbitMQ Check:".ljust(40) + "FAIL".ljust(10)
 
         infra.display_on_terminal(self, msg)
 
@@ -378,7 +385,8 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "mariadb_check"
-        args = r"mysql -u root -p12cbc80d6b48498e -e 'show databases;'| grep cinder"
+        args = r"mysql -u %s -p%s -e 'show databases;'| grep cinder" % \
+            (self.mariadb_user, self.mariadb_password)
         ansi_result['ansi_result'] = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
@@ -386,9 +394,9 @@ class AnsibleMonitor(BaseMonitor):
                                       module_args=args)
         msg = ""
         if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "ANSIBLE MONITOR: MariaDB Check: PASS"
+            msg = "MariaDB Check:".ljust(40) + "PASS".ljust(10)
         else:
-            msg = "ANSIBLE MONITOR: MariaDB Check: FAIL"
+            msg = "MariaDB Check:".ljust(40) + "FAIL".ljust(10)
 
         infra.display_on_terminal(self, msg)
 
@@ -442,20 +450,27 @@ class AnsibleMonitor(BaseMonitor):
         '''
         Required start method to implement for the class.
         '''
-        # Initialize and Parse user input..
-        self.ansirunner = None
-        self.ansiresults = collections.deque(maxlen=5)
-        setup_file = "../../configs/openstack_config.yaml"
-        inventory = ConfigHelper(host_file=setup_file)
-
-        print "parsed data: ", inventory.parsed_data
-        print "host list: ", inventory.get_host_list()
-
+        # Parse user data and Initialize.
         data = self.get_input_arguments()
         print "User data: ", data
-        print "freq: ", data[0]['ansible']['frequency']
-        self.frequency = data[0]['ansible'].get('frequency', 5)
+        self.frequency = data['ansible'].get('frequency', 5)
+        self.max_hist_size = data['ansible'].get('max_hist', 25)
 
+        # Get MariaDB Username/pass
+        self.mariadb_user = None
+        self.mariadb_password = None
+        mariadb_info = data['ansible'].get('mariadb', None)
+        if mariadb_info is not None:
+            self.mariadb_user = data['ansible']['mariadb'].get('user', None)
+            self.mariadb_password = data['ansible']['mariadb'].get('password',
+                                                                   None)
+
+        self.ansirunner = None
+        setup_file = "../../configs/openstack_config.yaml"
+        self.ansiresults = collections.deque(maxlen=self.max_hist_size)
+
+        inventory = ConfigHelper(host_file=setup_file)
+        print "parsed data: ", inventory.parsed_data
 
         host_list = inventory.get_host_list()
         host_ip_list = inventory.get_host_ip_list()
@@ -476,8 +491,10 @@ class AnsibleMonitor(BaseMonitor):
             # Ansible Monitoring Loop.
             ####################################################
             ts_results = []
-            ts = self.get_monitor_timestamp()
+            ts = utils.get_monitor_timestamp()
             ts_results.append({'name': 'ts', 'ts': ts})
+            msg = "=" * 50 + "\n" + "Timestamp: " + ts
+            infra.display_on_terminal(self, msg)
 
             # Ping and SSH Check.
             host_ip_list = inventory.get_host_ip_list()
