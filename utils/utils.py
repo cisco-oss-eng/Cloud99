@@ -92,13 +92,16 @@ def get_absolute_path_for_file(path, file_name, splitdir=None):
 
     return abs_file_path
 
-def get_monitor_timestamp():
+def get_monitor_timestamp(complete_timestamp=False):
     '''
     Return the timestamp that will be added to the
     results.
     '''
     dt = datetime.datetime.now()
-    timestamp = "%s:%s:%s-%s/%s/%s" % (dt.hour, dt.minute, dt.second,
-                                           dt.month, dt.day, dt.year)
+    if complete_timestamp:
+        timestamp = "%s-%s-%s %s:%s:%s" % (dt.year, dt.month, dt.day,
+                                           dt.hour, dt.minute, dt.second)
+    else:
+        timestamp = "%s:%s:%s" % (dt.hour, dt.minute, dt.second)
 
     return timestamp

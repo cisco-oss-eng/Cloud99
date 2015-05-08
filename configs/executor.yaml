@@ -15,5 +15,5 @@ executors:
         #node_disruption : [glance_controller, neutron_controller]
         execute: [boot_test]
         start: [openstack_api]
-        process_disruption: [nova_scheduler]
+        #process_disruption: [nova_scheduler]
     -

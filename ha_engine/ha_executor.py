@@ -35,6 +35,7 @@ class HAExecutor(object):
         ha_infra.dump_on_console(self.plugin_to_class_map,
                                  "Plugin to class map")
 
+
     def run(self):
         """
         Actual execution starts here
@@ -49,6 +50,7 @@ class HAExecutor(object):
         # clean up the xterm paths
         if os.path.exists(self.infra_path):
             shutil.rmtree(self.infra_path)
+
 
         for executor_index, executor_block in enumerate(execute):
                 parallel = False

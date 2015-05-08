@@ -133,15 +133,18 @@ def display_infra_report(show_historical=False):
                         headers = individual_table[0]
                         print
                         print "*"*15 + tablename + "*"*15
+                        print "-" * (30 + len(tablename))
                         print
-                        x = PrettyTable(headers)
+                        report_table = PrettyTable(headers)
                         for header in headers:
-                           x.align[header] = "l"
-                        x.padding_width = 1
+                           report_table.align[header] = "l"
+
+                        report_table.padding_width = 3
                         rows = individual_table[1:]
                         for row in rows:
-                            x.add_row(row)
-                        print x
+                            report_table.add_row(row)
+
+                        print report_table
 
 
 def display_report(module, steps=None):
@@ -386,6 +389,7 @@ def follow(thefile):
             time.sleep(0.1)
             continue
         yield line
+
 
 @singleton
 class HAinfra(object):
