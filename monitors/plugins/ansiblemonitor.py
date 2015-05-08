@@ -15,7 +15,18 @@ import utils.utils as utils
 SERVICE_LIST = [
     {'service': 'neutron-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
-    {'service': 'glance-registry', 'role': 'controller'}]
+    {'service': 'glance-registry', 'role': 'controller'},
+    {'service': 'openstack-nova-api', 'role': 'controller'},
+    {'service': 'rabbitmq-server', 'role': 'controller'},
+    {'service': 'openstack-glance-api', 'role': 'controller'},
+    {'service': 'openstack-glance-registry', 'role': 'controller'},
+    {'service': 'openstack-nova-novncproxy', 'role': 'controller'},
+    {'service': 'openstack-nova-conductor', 'role': 'controller'},
+    {'service': 'neutron-dhcp-agent', 'role': 'controller'},
+    {'service': 'neutron-metadata-agent', 'role': 'controller'},
+    {'service': 'neutron-l3-agent', 'role': 'controller'},
+    {'service': 'openstack-nova-compute', 'role': 'controller'}]
+
 
 
 def get_absolute_path_for_file(path, file_name, splitdir=None):
@@ -288,6 +299,19 @@ class AnsibleMonitor(BaseMonitor):
     '''
     Anisble Monitor.
     '''
+    def display_msg_on_term(self, msg, status):
+        '''
+        Generic function invoked by other check functions to print
+        status.
+        '''
+        msg = msg.ljust(50)
+        status_msg = status.ljust(10)
+        msg = msg + status_msg
+        if status == 'PASS':
+            infra.display_on_terminal(self, msg, "color=green")
+        else:
+            infra.display_on_terminal(self, msg, "color=red")
+
     def get_monitor_timestamp(self):
         '''
         Return the timestamp that will be added to the
@@ -312,13 +336,10 @@ class AnsibleMonitor(BaseMonitor):
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="ping")
-        msg = ""
-        if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "Ssh & Ping Check:".ljust(40) + "PASS".ljust(10)
-            infra.display_on_terminal(self, msg, "color=green")
-        else:
-            msg = "SSh & Ping Check:".ljust(40) + "FAIL".ljust(10)
-            infra.display_on_terminal(self, msg, "color=red")
+
+        msg = "SSH & Ping Check:"
+        self.display_msg_on_term(msg,
+                                 ansi_result['ansi_result']['status'])
 
         return ansi_result
 
@@ -331,24 +352,17 @@ class AnsibleMonitor(BaseMonitor):
         ansi_result['name'] = "process_check"
         ansi_result['process'] = process_name
 
-        args = "ps -ef | grep %s | grep -v grep" % process_name
+        #args = "ps -ef | grep %s | grep -v grep" % process_name
+        args = "systemctl | grep %s | grep running" % process_name
         ansi_result['ansi_result'] = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
 
-        msg = ""
-        pmsg = "Process Check [%s]" % process_name
-        if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = pmsg.ljust(40) + "PASS".ljust(10)
-            infra.display_on_terminal(self, msg, "color=green")
-        else:
-            msg = pmsg.ljust(40) + "FAIL".ljust(10)
-            infra.display_on_terminal(self, msg, "color=red")
-
-        #print "RESULTS:::: ", ansi_result['ansi_result']
-        #host0 = ansi_result['ansi_result']['contacted'][host_list[0]]
+        msg = "Process Check [%s]" % process_name
+        self.display_msg_on_term(msg,
+                                 ansi_result['ansi_result']['status'])
 
         return ansi_result
 
@@ -367,13 +381,9 @@ class AnsibleMonitor(BaseMonitor):
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
-        msg = ""
-        if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "RabbitMQ Check:".ljust(40) + "PASS".ljust(10)
-            infra.display_on_terminal(self, msg, "color=green")
-        else:
-            msg = "RabbitMQ Check:".ljust(40) + "FAIL".ljust(10)
-            infra.display_on_terminal(self, msg, "color=red")
+        msg = "RabbitMQ Check"
+        self.display_msg_on_term(msg,
+                                 ansi_result['ansi_result']['status'])
 
         return ansi_result
 
@@ -392,20 +402,16 @@ class AnsibleMonitor(BaseMonitor):
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
-        msg = ""
-        if ansi_result['ansi_result']['status'] == 'PASS':
-            msg = "MariaDB Check:".ljust(40) + "PASS".ljust(10)
-            infra.display_on_terminal(self, msg, "color=green")
-        else:
-            msg = "MariaDB Check:".ljust(40) + "FAIL".ljust(10)
-            infra.display_on_terminal(self, msg, "color=red")
+        msg = "MariaDB Check"
+        self.display_msg_on_term(msg,
+                                 ansi_result['ansi_result']['status'])
 
         return ansi_result
 
-    def display_ansible_report(self,
-                               hist_cnt=5):
+    def display_ansible_summary_report(self,
+                                       hist_cnt=5):
         '''
-        Display the Ansible Report.
+        Display the Ansible Summary Report.
         '''
         infra.create_report_table(self, "Ansible Monitoring Summary")
         infra.add_table_headers(self, "Ansible Monitoring Summary",
@@ -416,7 +422,6 @@ class AnsibleMonitor(BaseMonitor):
                                  "Process"])
         rows = []
         for ts_results in self.ansiresults:
-            print "=========================================="
             singlerow = []
             process_check_status = 'PASS'
             for results in ts_results:
@@ -444,7 +449,65 @@ class AnsibleMonitor(BaseMonitor):
         infra.add_table_rows(self,
                              "Ansible Monitoring Summary",
                              rows)
-        infra.display_infra_report()
+        #infra.display_infra_report()
+
+    def display_asible_process_report(self,
+                                      hist_cnt=5):
+        '''
+        Display the Error report for processes.
+        '''
+        process_set = ()
+        process_list = []
+        per_proc_result = {}
+        for service in SERVICE_LIST:
+            svcnm = service['service']
+            per_proc_result[svcnm] = {}
+            per_proc_result[svcnm]['reslist'] = []
+
+        # Identify failed processes.
+        for ts_results in self.ansiresults:
+            ts = None
+            for results in ts_results:
+                name = results.get('name', None)
+                if name is None:
+                    continue
+                if name == "ts":
+                    ts = results.get('ts', None)
+
+                if name == "process_check":
+                    procname = results['process']
+                    results['ts'] = ts
+                    per_proc_result[procname]['reslist'].append(results)
+                    if results['ansi_result']['status'] == 'FAIL':
+                        process_list.append(results['process'])
+
+        process_set = set(process_list)
+        # Create a new table and set the header.
+        infra.create_report_table(self, "Ansible Failed Processes")
+        hdr_columns = ["Timestamp"]
+        for proc in process_set:
+            hdr_columns.append(proc)
+
+        infra.add_table_headers(self, "Ansible Failed Processes",
+                                hdr_columns)
+
+        rows = []
+        for cnt in range(0, len(self.ansiresults)):
+            singlerow = []
+            ts_done = False
+            for fproc in process_set:
+                proc_res = per_proc_result[fproc]
+                if not ts_done:
+                    singlerow.append(proc_res['reslist'][cnt]['ts'])
+                    ts_done = True
+
+                singlerow.\
+                    append(proc_res['reslist'][cnt]['ansi_result']['status'])
+            rows.append(singlerow)
+        infra.add_table_rows(self,
+                             "Ansible Failed Processes", rows)
+        #infra.display_infra_report()
+
 
     def start(self, sync=None, finish_execution=None, args=None):
         '''
@@ -482,10 +545,15 @@ class AnsibleMonitor(BaseMonitor):
         print "Remote user: ", remote_user
         self.ansirunner = AnsibleRunner()
 
+        if sync:
+            infra.display_on_terminal(self, "Waiting for Runner Notification")
+            infra.wait_for_notification(sync)
+            infra.display_on_terminal(self, "Received notification from Runner")
+
         cnt = 0
         while True:
             cnt += 1
-            if cnt > 3:
+            if cnt > 6:
                 break
             ####################################################
             # Ansible Monitoring Loop.
@@ -526,7 +594,9 @@ class AnsibleMonitor(BaseMonitor):
 
             time.sleep(self.frequency)
 
-        self.display_ansible_report()
+        self.display_ansible_summary_report()
+        self.display_asible_process_report()
+        infra.display_infra_report()
 
 
 
