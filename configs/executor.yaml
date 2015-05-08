@@ -9,11 +9,11 @@ executors:
         mode: parallel
         repeat: 1
         sync: true
-        ha_interval: 90
+        ha_interval: 45 
 
         # disruption scenario
         #node_disruption : [glance_controller, neutron_controller]
         execute: [boot_test]
-        start: [openstack_api]
-        #process_disruption: [nova_scheduler]
+        start: [openstack_api, ansible]
+        process_disruption: [nova_scheduler]
     -

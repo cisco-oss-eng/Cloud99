@@ -66,6 +66,21 @@ class HealthAPI(BaseMonitor):
         # Display the final report
         infra.display_infra_report()
 
+    def display_msg_on_term(self, msg, status):
+        '''
+        Generic function invoked by other check functions to print
+        status.
+        '''
+        msg = msg.ljust(50)
+        status_msg = status.ljust(10)
+        msg = msg + status_msg
+        if status == 'PASS':
+            infra.display_on_terminal(self, msg, "color=green")
+        else:
+            infra.display_on_terminal(self, msg, "color=red")
+
+
+
     def health_check_start(self):
         creds = self.cred.get_credentials()
         creds_nova = self.cred.get_nova_credentials_v2()
@@ -98,7 +113,7 @@ class HealthAPI(BaseMonitor):
 
             self.service_results.append(svc_results)
 
-        self.health_display_report()
+        #self.health_display_report()
 
     def health_display_report(self):
         infra.create_report_table(self, self.table_endpoint_check)
@@ -128,8 +143,7 @@ class HealthAPI(BaseMonitor):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
             if detail == False:
-                infra.display_on_terminal(self, "Nova Endpoint Check: OK",
-                                          "color=green")
+                self.display_msg_on_term("Nova Endpoint Check", "PASS") 
                 results['nova'] = 'OK'
                 self.update_downtime_dict(self.endpoint_downtime_dict,
                                           'nova-api', 'All Hosts', 'OK')
@@ -145,22 +159,23 @@ class HealthAPI(BaseMonitor):
                     service_dict['host'] = service.host
                     service_dict['Status'] = service.status
                     service_dict['State'] = service.state
+                    msg = "%s state" % service.binary
                     if service.state == 'down':
                         color = "color=red"
                         self.update_downtime_dict(self.agents_downtime_dict,
                                                   service.binary, service.host,
                                                   'FAIL')
+                        self.display_msg_on_term(msg, "FAIL")
                     else:
                         self.update_downtime_dict(self.agents_downtime_dict,
                                                   service.binary, service.host,
                                                   'OK')
-                    infra.display_on_terminal(self, service_data, color)
+                        self.display_msg_on_term(msg, "PASS")
                     results.append(service_dict)
         else:
+            
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'nova-api', 'All Hosts', 'FAIL')
-            infra.display_on_terminal(self, "Nova Endpoint Check: FAILED",
-                                      "color=red")
 
             if detail == True:
                 service_dict = {}
@@ -169,21 +184,23 @@ class HealthAPI(BaseMonitor):
                 service_dict['host'] = 'NA'
                 service_dict['Status'] = 'NA'
                 service_dict['State'] = 'NA'
+                self.display_msg_on_term("nova-api state", "FAIL")
                 results.append(service_dict)
             else:
+                self.display_msg_on_term("Nova Endpoint Check", "FAIL")
                 results['nova'] = 'FAIL'
             
     def neutron_endpoint_check(self, neutron_instance, results, detail=False):
         status, message, agent_list = neutron_instance.neutron_agent_list()
         if status == 200:
             if detail == False:
-                infra.display_on_terminal(self, "Neutron Endpoint Check: OK",
-                                          "color=green")
+                self.display_msg_on_term("Neutron Endpoint Check", "PASS")
                 results['neutron'] = 'OK'
                 self.update_downtime_dict(self.endpoint_downtime_dict,
                                     'neutron-server', 'All Hosts', 'OK')
             else:
                 for agent in agent_list:
+                    state = "PASS"
                     agent_dict = {}
                     agent_data = "Agent=%s Host=%s Alive=%s  Admin State=%s"\
                                  % (agent['binary'], agent['host'],
@@ -195,18 +212,19 @@ class HealthAPI(BaseMonitor):
                     if agent['alive']:
                         agent_dict['Status'] = 'OK'
                     else:
-                        color="color=red"
+                        state = "FAIL"
                         agent_dict['Status'] = 'FAIL'
                     if agent['admin_state_up']:
                         agent_dict['State'] = 'OK'
                     else:
-                        color="color=red"
+                        state = "FAIL"
                         agent_dict['State'] = 'FAIL'
 
                     self.update_downtime_dict(self.agents_downtime_dict,
                                               agent['binary'], agent['host'],
                                               agent_dict['Status'])
-                    infra.display_on_terminal(self, agent_data, color)
+                    msg = "%s state" % agent['binary']
+                    self.display_msg_on_term(msg, state)
                     results.append(agent_dict)
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
@@ -218,57 +236,51 @@ class HealthAPI(BaseMonitor):
                 agent_dict['host'] = 'NA'
                 agent_dict['Status'] = 'NA'
                 agent_dict['State'] = 'NA'
+                self.display_msg_on_term("neutron-server state", "FAIL")
                 results.append(agent_dict)
             else:
+                self.display_msg_on_term("Neutron Endpoint Check" , "FAIL")
                 results['neutron'] = 'FAIL'
-            infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL",
-                                      "color=red")
 
     
     def keystone_endpoint_check(self, keystone_instance, results):
         status, message, service_list = \
             keystone_instance.keystone_service_list()
         if status == 200:
-            infra.display_on_terminal(self, "Keystone Endpoint Check: OK",
-                                      "color=green")
+            self.display_msg_on_term("Keystone Endpoint Check" , "PASS")
             results['keystone'] = 'OK'
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'keystone', 'All Hosts', 'OK')
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'keystone', 'All Hosts', 'FAIL')
-            infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL",
-                                      "color=red")
+            self.display_msg_on_term("Keystone Endpoint Check", "FAIL")
             results['keystone'] = 'FAIL'
     
     def glance_endpoint_check(self, glance_instance, results):
         status, message, image_list = glance_instance.glance_image_list()
         if status == 200:
-            infra.display_on_terminal(self, "Glance endpoint Check: OK",
-                                      "color=green")
+            self.display_msg_on_term("Glance Endpoint Check", "PASS")
             results['glance'] = 'OK'
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'glance-api', 'All Hosts', 'OK')
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'glance-api', 'All Hosts', 'FAIL')
-            infra.display_on_terminal(self, "Glance endpoint Check: FAILED",
-                                      "color=red")
+            self.display_msg_on_term("Glance Endpoint Check", "FAIL")
             results['glance'] = 'FAIL'
     
     def cinder_endpoint_check(self, cinder_instance, results):
         status, message, cinder_list = cinder_instance.cinder_list()
         if status == 200:
-            infra.display_on_terminal(self, "Cinder endpoint Check : OK",
-                                      "color=green")
+            self.display_msg_on_term("Cinder Endpoint Check", "PASS")
             results['cinder'] = 'OK'
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'cinder-api', 'All Hosts', 'OK')
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'cinder-api', 'All Hosts', 'FAIL')
-            infra.display_on_terminal(self, "Cinder endpoint Check: FAILED",
-                                      "color=red")
+            self.display_msg_on_term("Cinder Endpoint Check", "FAIL")
             results['cinder'] = 'FAIL'
         
     def stop(self):
