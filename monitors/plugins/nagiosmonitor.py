@@ -49,22 +49,29 @@ class NagiosMonitor(BaseMonitor):
         filterType = str(input_args['nagios']['type'])
 
         host_config = infra.get_openstack_config()
-        print host_config
-        print "================ "+filterType
+        #print host_config
+        #print "================ "+filterType
         host_filter = []
         if filterType == "node":
             host_filter = self.generateFilterList(host_config,filterType)
 
         # Execution starts here
-        #while (not finish_execution):
+        """
+        if sync:
+            infra.display_on_terminal(self, "Waiting for Runner Notification")
+            infra.wait_for_notification(sync)
+            infra.display_on_terminal(self, "Received notification from Runner")
+        """    
         startTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
         ctr = 0
+        #while infra.is_execution_completed(self.finish_execution) is False:
         while(finish_execution):
             data = self.getNagiosData(self.url, ip_address)
             self.processAndReport(data,self.reportDict,host_filter,filterType) 
             #print self.reportDict
             self.printServiceStateReport(self.reportDict)
             time.sleep(20)
+            # below counter check and break loop will be removed during actual execution
             ctr+=1
             if ctr == 10:
                 break
@@ -74,8 +81,8 @@ class NagiosMonitor(BaseMonitor):
     
     #@staticmethod
     def processAndReport(self,data,reportDict,host_filter,filterType):
-        print "================"+filterType
-        print host_filter
+        #print "================"+filterType
+        #print host_filter
         format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
         ret = []
         for ip in data:

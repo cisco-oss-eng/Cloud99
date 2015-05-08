@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"
+          rel="stylesheet">
+<script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>
+<!--
+  <script type=text/javascript>
+    $(function() {
+      $('a#calculate').bind('click', function() {
+        $.getJSON('/_add_numbers', {
+          a: $('input[name="a"]').val(),
+          b: $('input[name="b"]').val()
+        }, function(data) {
+          $("#result").text(data.result);
+        });
+        return false;
+      });
+    });
+  </script>
+-->
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h3 class="text-muted">How To Manage JSON Requests</h3>
+      </div>
+      <hr/>
+      <div>
+      <p>
+    <input type="text" size="5" name="a"> +
+    <input type="text" size="5" name="b"> =
+    <span id="result">?</span>
+    <p><a href="javascript:void();" id="calculate">calculate server side</a>
+      </form>
+      </div>
+    </div>
+  </body>
+</html>
