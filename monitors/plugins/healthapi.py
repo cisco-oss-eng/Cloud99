@@ -63,6 +63,9 @@ class HealthAPI(BaseMonitor):
         self.generate_downtime_table(self.agents_downtime_dict,
                                      "Agent Downtime")
 
+        # Display the final report
+        infra.display_infra_report()
+
     def health_check_start(self):
         creds = self.cred.get_credentials()
         creds_nova = self.cred.get_nova_credentials_v2()
@@ -119,7 +122,7 @@ class HealthAPI(BaseMonitor):
                                      service['host'], service['Status'],
                                      service['State']]])
         """
-        infra.display_infra_report()
+        #infra.display_infra_report()
     
     def nova_endpoint_check(self, nova_instance, results, detail=False):
         status, message, service_list = nova_instance.nova_service_list()
@@ -156,7 +159,6 @@ class HealthAPI(BaseMonitor):
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
                                       'nova-api', 'All Hosts', 'FAIL')
-            print "FAIL----> INSERTED"
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED",
                                       "color=red")
 
@@ -292,7 +294,6 @@ class HealthAPI(BaseMonitor):
         all_agent_list = [agent for agent in downtime_dict]
         infra.create_report_table(self, table_name)
         headers = ["Host Names "] + all_agent_list
-        print "HEADERS ", headers
         infra.add_table_headers(self, table_name, headers)
 
         col_pos = 0
@@ -357,7 +358,7 @@ class HealthAPI(BaseMonitor):
 
             infra.add_table_rows(self, table_name, [row + agents])
 
-        infra.display_infra_report()
+
 
     def update_downtime_dict(self, downtime_dict, agent_name,
                              host_name, status):
