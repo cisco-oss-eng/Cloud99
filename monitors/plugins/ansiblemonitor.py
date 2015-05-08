@@ -300,6 +300,7 @@ class AnsibleMonitor(BaseMonitor):
     '''
     Anisble Monitor.
     '''
+    finish_execution = None
     def display_msg_on_term(self, msg, status):
         '''
         Generic function invoked by other check functions to print
@@ -562,9 +563,10 @@ class AnsibleMonitor(BaseMonitor):
         # Now copy the data to a file
         ansible_graph_file = "/tmp/ansible_graph.txt"
 
-        rescount = len(self.ansiresults)
+        #rescount = len(self.ansiresults)
         test_starttime = self.ansiresults[0][0]['ts']
-        test_endtime = self.ansiresults[rescount - 1][0]['ts']
+        # Capture end time.
+        test_endtime = utils.get_monitor_timestamp()
 
         with open(ansible_graph_file, "w") as f:
             data = "starttime##%s\n" % test_starttime
@@ -587,14 +589,12 @@ class AnsibleMonitor(BaseMonitor):
             data = "endtime##%s\n" % test_endtime
             f.write(data)
 
-
-
-
     def start(self, sync=None, finish_execution=None, args=None):
         '''
         Required start method to implement for the class.
         '''
         # Parse user data and Initialize.
+        self.finish_execution = finish_execution
         data = self.get_input_arguments()
         print "User data: ", data
         self.frequency = data['ansible'].get('frequency', 5)
@@ -631,11 +631,7 @@ class AnsibleMonitor(BaseMonitor):
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
 
-        cnt = 0
-        while True:
-            cnt += 1
-            if cnt > 50:
-                break
+        while infra.is_execution_completed(self.finish_execution) is False:
             ####################################################
             # Ansible Monitoring Loop.
             ####################################################
@@ -675,6 +671,8 @@ class AnsibleMonitor(BaseMonitor):
 
             time.sleep(self.frequency)
 
+
+        # Generate Summary Reports
         self.display_ansible_summary_report()
         self.display_asible_process_report()
         infra.display_infra_report()
