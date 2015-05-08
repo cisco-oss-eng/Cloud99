@@ -63,8 +63,8 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        for i in range(2):
-        #while infra.is_execution_completed(self.finish_execution) is False:
+        #for i in range(2):
+        while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
 
@@ -119,26 +119,28 @@ class HealthAPI(BaseMonitor):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
             if detail == False:
-                infra.display_on_terminal(self, "Nova Endpoint Check: OK")
+                infra.display_on_terminal(self, "Nova Endpoint Check: OK", "color=green")
                 results['nova'] = 'OK'
             else:
                 for service in service_list:
                     service_dict = {}
                     service_data = "Binary=%s   Host=%s   Status=%s   State=%s" %(service.binary, service.host,
                                                                                   service.status, service.state)
-                    infra.display_on_terminal(self, service_data)
+                    color = "color=green"
                     service_dict['ts'] = self.ts
                     service_dict['service'] = service.binary
                     service_dict['host'] = service.host
                     service_dict['Status'] = service.status
                     service_dict['State'] = service.state
                     if service.state == 'down':
+                        color = "color=red"
                         self.update_downtime_dict(service.binary, service.host, 'FAIL')
                     else:
                         self.update_downtime_dict(service.binary, service.host, 'OK')
+                    infra.display_on_terminal(self, service_data, color)
                     results.append(service_dict)
         else:
-            infra.display_on_terminal(self, "Nova Endpoint Check: FAILED")
+            infra.display_on_terminal(self, "Nova Endpoint Check: FAILED", "color=red")
 
             if detail == True:
                 service_dict = {}
@@ -156,27 +158,30 @@ class HealthAPI(BaseMonitor):
         status, message, agent_list = neutron_instance.neutron_agent_list()
         if status == 200:
             if detail == False:
-                infra.display_on_terminal(self, "Neutron Endpoint Check: OK")
+                infra.display_on_terminal(self, "Neutron Endpoint Check: OK", "color=green")
                 results['neutron'] = 'OK'
             else:
                 for agent in agent_list:
                     agent_dict = {}
                     agent_data = "Agent=%s   Host=%s   Alive=%s   Admin State=%s" % (agent['binary'], agent['host'],
                                                                                      agent['alive'], agent['admin_state_up'])
-                    infra.display_on_terminal(self, agent_data)
+                    color= "color=green"
                     agent_dict['ts'] = self.ts
                     agent_dict['service'] = agent['binary']
                     agent_dict['host'] = agent['host']
                     if agent['alive']:
                         agent_dict['Status'] = 'OK'
                     else:
+                        color="color=red"
                         agent_dict['Status'] = 'FAIL'
                     if agent['admin_state_up']:
                         agent_dict['State'] = 'OK'
                     else:
+                        color="color=red"
                         agent_dict['State'] = 'FAIL'
 
                     self.update_downtime_dict(agent['binary'], agent['host'], agent_dict['Status'])
+                    infra.display_on_terminal(self, agent_data, color)
                     results.append(agent_dict)
         else:
             if detail == True:
@@ -189,35 +194,35 @@ class HealthAPI(BaseMonitor):
                 results.append(agent_dict)
             else:
                 results['neutron'] = 'FAIL'
-            infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL")
+            infra.display_on_terminal(self, "Neutron Endpoint Check: FAIL", "color=red")
 
     
     def keystone_endpoint_check(self, keystone_instance, results):
         status, message, service_list = \
             keystone_instance.keystone_service_list()
         if status == 200:
-            infra.display_on_terminal(self, "Keystone Endpoint Check: OK")
+            infra.display_on_terminal(self, "Keystone Endpoint Check: OK", "color=green")
             results['keystone'] = 'OK'
         else:
-            infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL")
+            infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL", "color=red")
             results['keystone'] = 'FAIL'
     
     def glance_endpoint_check(self, glance_instance, results):
         status, message, image_list = glance_instance.glance_image_list()
         if status == 200:
-            infra.display_on_terminal(self, "Glance endpoint Check: OK")
+            infra.display_on_terminal(self, "Glance endpoint Check: OK", "color=green")
             results['glance'] = 'OK'
         else:
-            infra.display_on_terminal(self, "Glance endpoint Check: FAILED")
+            infra.display_on_terminal(self, "Glance endpoint Check: FAILED", "color=red")
             results['glance'] = 'FAIL'
     
     def cinder_endpoint_check(self, cinder_instance, results):
         status, message, cinder_list = cinder_instance.cinder_list()
         if status == 200:
-            infra.display_on_terminal(self, "Cinder endpoint Check : OK")
+            infra.display_on_terminal(self, "Cinder endpoint Check : OK", "color=green")
             results['cinder'] = 'OK'
         else:
-            infra.display_on_terminal(self, "Cinder endpoint Check: FAILED")
+            infra.display_on_terminal(self, "Cinder endpoint Check: FAILED", "color=red")
             results['cinder'] = 'FAIL'
         
     def stop(self):
