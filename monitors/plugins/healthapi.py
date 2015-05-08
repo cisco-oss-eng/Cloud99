@@ -12,11 +12,10 @@ import collections
 
 LOG = infra.ha_logging(__name__)
 
-
 class HealthAPI(BaseMonitor):
     # Create Table and add header
     table_endpoint_check = "Health Status: Endpoint Check"
-    table_service_check  = "Health Status: Service Status Check"
+    table_service_check = "Health Status: Service Status Check"
     finish_execution = None
     agents_downtime_dict = collections.OrderedDict()
     endpoint_downtime_dict = collections.OrderedDict()
@@ -25,6 +24,7 @@ class HealthAPI(BaseMonitor):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
         input_args = self.get_input_arguments()
         self.finish_execution = finish_execution
+
         if 'openrc_file' in input_args['openstack_api']:
             openrc = input_args['openstack_api']['openrc_file']
         else:
@@ -39,6 +39,7 @@ class HealthAPI(BaseMonitor):
             noenv = True
         else:
             noenv = False
+
         self.cred = openstack_api.credentials.Credentials(openrc, password,
                                                           noenv)
         self.frequency = input_args['openstack_api']['frequency']
@@ -54,6 +55,13 @@ class HealthAPI(BaseMonitor):
         self.health_check_start()
         infra.display_on_terminal(self, "Finished Monitoring")
 
+        # Generate downtime range of all the endpoints
+        self.generate_downtime_table(self.endpoint_downtime_dict,
+                                     "Endpoints Downtime")
+
+        # Generate downtime range table for all the agents
+        self.generate_downtime_table(self.agents_downtime_dict,
+                                     "Agent Downtime")
 
     def health_check_start(self):
         creds = self.cred.get_credentials()
@@ -65,7 +73,6 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        #for i in range(2):
         while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
@@ -90,14 +97,6 @@ class HealthAPI(BaseMonitor):
 
         self.health_display_report()
 
-        # Generate downtime range of all the endpoints
-
-        # Generate downtime range table for all the agents
-        self.generate_downtime_table(self.agents_downtime_dict,
-                                     "Agent Downtime")
-
-
-    
     def health_display_report(self):
         infra.create_report_table(self, self.table_endpoint_check)
         infra.add_table_headers(self, self.table_endpoint_check,
@@ -109,10 +108,9 @@ class HealthAPI(BaseMonitor):
                                  "Status", "State"])
         for endpoint in self.endpoint_results:
             infra.add_table_rows(self, self.table_endpoint_check,
-                                 [
-                                    [endpoint['timestamp'], endpoint['nova'],
+                                 [[endpoint['timestamp'], endpoint['nova'],
                                    endpoint['neutron'], endpoint['keystone'],
-                                            endpoint['glance'], endpoint['cinder']]])
+                                   endpoint['glance'], endpoint['cinder']]])
         """
         for service in self.service_results:
             infra.add_table_rows(self, self.table_service_check,
@@ -123,7 +121,6 @@ class HealthAPI(BaseMonitor):
         """
         infra.display_infra_report()
     
-
     def nova_endpoint_check(self, nova_instance, results, detail=False):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
@@ -131,10 +128,12 @@ class HealthAPI(BaseMonitor):
                 infra.display_on_terminal(self, "Nova Endpoint Check: OK",
                                           "color=green")
                 results['nova'] = 'OK'
+                self.update_downtime_dict(self.endpoint_downtime_dict,
+                                          'nova-api', 'All Hosts', 'OK')
             else:
                 for service in service_list:
                     service_dict = {}
-                    service_data = "Binary=%s   Host=%s   Status=%s   State=%s"\
+                    service_data = "Binary=%s   Host=%s  Status=%s  State=%s"\
                                    % (service.binary, service.host,
                                       service.status, service.state)
                     color = "color=green"
@@ -155,6 +154,9 @@ class HealthAPI(BaseMonitor):
                     infra.display_on_terminal(self, service_data, color)
                     results.append(service_dict)
         else:
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'nova-api', 'All Hosts', 'FAIL')
+            print "FAIL----> INSERTED"
             infra.display_on_terminal(self, "Nova Endpoint Check: FAILED",
                                       "color=red")
 
@@ -169,7 +171,6 @@ class HealthAPI(BaseMonitor):
             else:
                 results['nova'] = 'FAIL'
             
-        
     def neutron_endpoint_check(self, neutron_instance, results, detail=False):
         status, message, agent_list = neutron_instance.neutron_agent_list()
         if status == 200:
@@ -177,13 +178,15 @@ class HealthAPI(BaseMonitor):
                 infra.display_on_terminal(self, "Neutron Endpoint Check: OK",
                                           "color=green")
                 results['neutron'] = 'OK'
+                self.update_downtime_dict(self.endpoint_downtime_dict,
+                                    'neutron-server', 'All Hosts', 'OK')
             else:
                 for agent in agent_list:
                     agent_dict = {}
                     agent_data = "Agent=%s Host=%s Alive=%s  Admin State=%s"\
                                  % (agent['binary'], agent['host'],
                                     agent['alive'], agent['admin_state_up'])
-                    color= "color=green"
+                    color = "color=green"
                     agent_dict['ts'] = self.ts
                     agent_dict['service'] = agent['binary']
                     agent_dict['host'] = agent['host']
@@ -204,6 +207,8 @@ class HealthAPI(BaseMonitor):
                     infra.display_on_terminal(self, agent_data, color)
                     results.append(agent_dict)
         else:
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'neutron-server', 'All Hosts', 'FAIL')
             if detail == True:
                 agent_dict = {}
                 agent_dict['ts'] = self.ts
@@ -225,7 +230,11 @@ class HealthAPI(BaseMonitor):
             infra.display_on_terminal(self, "Keystone Endpoint Check: OK",
                                       "color=green")
             results['keystone'] = 'OK'
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'keystone', 'All Hosts', 'OK')
         else:
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'keystone', 'All Hosts', 'FAIL')
             infra.display_on_terminal(self, "Keystone Endpoint Check: FAIL",
                                       "color=red")
             results['keystone'] = 'FAIL'
@@ -236,7 +245,11 @@ class HealthAPI(BaseMonitor):
             infra.display_on_terminal(self, "Glance endpoint Check: OK",
                                       "color=green")
             results['glance'] = 'OK'
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'glance-api', 'All Hosts', 'OK')
         else:
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'glance-api', 'All Hosts', 'FAIL')
             infra.display_on_terminal(self, "Glance endpoint Check: FAILED",
                                       "color=red")
             results['glance'] = 'FAIL'
@@ -247,7 +260,11 @@ class HealthAPI(BaseMonitor):
             infra.display_on_terminal(self, "Cinder endpoint Check : OK",
                                       "color=green")
             results['cinder'] = 'OK'
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'cinder-api', 'All Hosts', 'OK')
         else:
+            self.update_downtime_dict(self.endpoint_downtime_dict,
+                                      'cinder-api', 'All Hosts', 'FAIL')
             infra.display_on_terminal(self, "Cinder endpoint Check: FAILED",
                                       "color=red")
             results['cinder'] = 'FAIL'
@@ -275,6 +292,7 @@ class HealthAPI(BaseMonitor):
         all_agent_list = [agent for agent in downtime_dict]
         infra.create_report_table(self, table_name)
         headers = ["Host Names "] + all_agent_list
+        print "HEADERS ", headers
         infra.add_table_headers(self, table_name, headers)
 
         col_pos = 0
@@ -341,23 +359,24 @@ class HealthAPI(BaseMonitor):
 
         infra.display_infra_report()
 
-    def update_downtime_dict(self, agents_downtime_dict, agent_name,
+    def update_downtime_dict(self, downtime_dict, agent_name,
                              host_name, status):
 
-        if agents_downtime_dict.get(agent_name, None):
-            agents_host_list = agents_downtime_dict[agent_name]
+        if downtime_dict.get(agent_name, None):
+            agents_host_list = downtime_dict[agent_name]
 
-            downtime_dict = [d for d in agents_host_list if host_name in d]
-            if downtime_dict:
-                downtime_dict[0].get(host_name)[self.ts] = status
+            down_dict = [d for d in agents_host_list if host_name in d]
+            if down_dict:
+                down_dict[0].get(host_name)[self.ts] = status
             else:
-                downtime_dict = collections.OrderedDict({self.ts: status})
-                agents_downtime_dict[agent_name].\
-                    append({host_name:downtime_dict })
+                down_dict = collections.OrderedDict({self.ts: status})
+                downtime_dict[agent_name].\
+                    append({host_name: down_dict })
         else:
-            downtime_dict = collections.OrderedDict({self.ts: status})
-            agents_downtime_dict[agent_name] = \
-                [{host_name: downtime_dict}]
+            down_dict = collections.OrderedDict({self.ts: status})
+            downtime_dict[agent_name] = \
+                [{host_name: down_dict}]
+
 
 """ 
 if __name__ == "__main__":
