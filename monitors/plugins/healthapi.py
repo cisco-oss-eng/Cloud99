@@ -63,8 +63,8 @@ class HealthAPI(BaseMonitor):
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
 
-        for i in range(2):
-        #while infra.is_execution_completed(self.finish_execution) is False:
+        #for i in range(2):
+        while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
 
@@ -240,9 +240,10 @@ class HealthAPI(BaseMonitor):
 
         host_agent_status_dict = collections.OrderedDict()
         col_pos_dict = {}
-        agent_list = [agent for agent in self.agents_downtime_dict]
+        all_agent_list = [agent for agent in self.agents_downtime_dict]
         infra.create_report_table(self, table_name)
-        headers = ["Host Names "] + agent_list
+        headers = ["Host Names "] + all_agent_list
+        print "HEADERS --> " + str(headers)
         infra.add_table_headers(self, table_name, headers)
 
         col_pos = 0
@@ -250,6 +251,8 @@ class HealthAPI(BaseMonitor):
             count = 0
             col_pos_dict[agent] = col_pos
             for agent_dict in self.agents_downtime_dict[agent]:
+                if agent_dict is None:
+                    print "No agent."
                 for host in agent_dict:
                     cur = None
                     prev = None
@@ -273,7 +276,7 @@ class HealthAPI(BaseMonitor):
                         prev = cur
 
                     if not downtime_range:
-                        all_down_range = "No downtime"
+                        all_down_range = " :) "
                     else:
                         all_down_range = ", ".join(downtime_range)
 
@@ -281,15 +284,29 @@ class HealthAPI(BaseMonitor):
                     if host_agent_status_dict.get(host, None) is None:
                         host_agent_status_dict[host] = [host_dict]
                     else:
-                        host_agent_status_dict.get(host,None).append(host_dict)
+                        host_agent_status_dict.get(host, None).append(host_dict)
             col_pos += 1
+
 
         for host in host_agent_status_dict:
             row = [host]
-            agents = []
+            agents = ['-'] * len(all_agent_list)
+            available_agents = set()
+            for agent in host_agent_status_dict[host]:
+                available_agents.add(agent.keys()[0])
+
+            missing_agents = set()
             for agent_status in host_agent_status_dict[host]:
+                missing_agents = set(all_agent_list).difference(available_agents)
                 for agent_name, status in agent_status.items():
-                    agents.append(status)
+                    colpos = col_pos_dict.get(agent_name)
+                    status = agent_status.get(agent_name, None)
+                    agents[colpos] = status
+            for missing_agent in missing_agents:
+                colpos = col_pos_dict.get(missing_agent)
+                na_status = 'NA'
+                agents[colpos] = na_status
+
             infra.add_table_rows(self, table_name, [row + agents])
 
         infra.display_infra_report()
