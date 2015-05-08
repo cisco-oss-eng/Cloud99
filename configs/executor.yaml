@@ -12,8 +12,8 @@ executors:
         ha_interval: 45 
 
         # disruption scenario
-        #node_disruption : [glance_controller, neutron_controller]
+        node_disruption : [compute_node]
         execute: [boot_test]
         start: [openstack_api, ansible]
-        process_disruption: [nova_scheduler]
+        #process_disruption: [nova_scheduler]
     -

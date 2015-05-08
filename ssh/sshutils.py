@@ -216,7 +216,8 @@ class SSH(object):
                 raise SSHTimeout(('Timeout executing command '
                                    '"%(cmd)s" on host %(host)s') % args)
             if e:
-                raise SSHError('Socket error.')
+                return None
+                #raise SSHError('Socket error.')
 
         exit_status = session.recv_exit_status()
         if 0 != exit_status and raise_on_error:

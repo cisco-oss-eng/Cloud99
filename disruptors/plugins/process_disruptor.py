@@ -76,6 +76,7 @@ class ProcessDisruptor(BaseDisruptor):
                                                          rhel_start_command)
 
         infra.display_on_terminal(self, "Finishing Process Disruption")
+
     def node_disruption(self, sync=None, finish_execution=None):
         pass
 

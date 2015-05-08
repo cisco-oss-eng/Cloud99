@@ -10,6 +10,7 @@ import re
 import ha_parser
 import os
 from fpdb import  ForkedPdb as fdb
+import paramiko
 
 LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
@@ -288,8 +289,9 @@ def ssh_and_execute_command(ip, username, password, command, timeout=10,
             LOG.error("Error while executing the command %s on node %s ",
                       err, ip)
         return (code, out, err)
-    except Exception:
-        LOG.error("Exception when trying to SSH in to node %s ", ip)
+    except Exception as exp:
+        LOG.warning("Exception when trying to SSH in to node %s ", ip)
+
         return None, None, None
 
 
@@ -311,7 +313,7 @@ def wait_for_ping(node, timeout, check_interval):
     while True:
         if ping_ip_address(node):
             LOG.debug("Ping to %s is Success ", node)
-            break
+            return True
         time.sleep(check_interval)
         if time.time() - start > timeout:
             LOG.critical("Timeout Exceeded for Ping %s", node)

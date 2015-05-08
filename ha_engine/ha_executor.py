@@ -71,6 +71,7 @@ class HAExecutor(object):
                 if 'sync' in executor_block:
                     LOG.info("Sync is requested within the block")
                     use_sync = executor_block.get('sync', False)
+                    LOG.info("Use Sync %s", use_sync)
 
                 ha_interval = None
                 if 'ha_interval' in executor_block:
