@@ -22,10 +22,11 @@ SERVICE_LIST = [
     {'service': 'openstack-glance-registry', 'role': 'controller'},
     {'service': 'openstack-nova-novncproxy', 'role': 'controller'},
     {'service': 'openstack-nova-conductor', 'role': 'controller'},
+    {'service': 'openstack-nova-scheduler', 'role': 'controller'},
     {'service': 'neutron-dhcp-agent', 'role': 'controller'},
     {'service': 'neutron-metadata-agent', 'role': 'controller'},
     {'service': 'neutron-l3-agent', 'role': 'controller'},
-    {'service': 'openstack-nova-compute', 'role': 'controller'}]
+    {'service': 'openstack-nova-compute', 'role': 'compute'}]
 
 
 
@@ -204,7 +205,7 @@ class AnsibleRunner(object):
         # pairs that should be matched.
         ##################################################
         if checks is None:
-            print "No additional checks validated"
+            #print "No additional checks validated"
             return results, failed_hosts
 
         for check in checks:
@@ -481,6 +482,11 @@ class AnsibleMonitor(BaseMonitor):
                     if results['ansi_result']['status'] == 'FAIL':
                         process_list.append(results['process'])
 
+        if len(process_list) == 0:
+            print "***************Ansible Failed Processes***************"
+            print " NONE"
+            return
+
         process_set = set(process_list)
         # Create a new table and set the header.
         infra.create_report_table(self, "Ansible Failed Processes")
@@ -507,6 +513,81 @@ class AnsibleMonitor(BaseMonitor):
         infra.add_table_rows(self,
                              "Ansible Failed Processes", rows)
         #infra.display_infra_report()
+
+    def generate_graphs_output(self):
+        '''
+        Generate result data in the format required by
+        the chart module.
+        '''
+        print "Generate graphs"
+        per_proc_result = {}
+        for service in SERVICE_LIST:
+            svcname = service['service']
+            per_proc_result[svcname] = {}
+            per_proc_result[svcname]['reslist'] = []
+
+        # Go through results from all timestamps, and
+        # generate the modified data structure.
+        for ts_results in self.ansiresults:
+            ts = None
+            for results in ts_results:
+                name = results.get('name', None)
+                if name is None:
+                    continue
+                if name == "ts":
+                    ts = results.get('ts', None)
+
+                if name == "process_check":
+                    results['ts_start'] = ts
+                    results['ts_end'] = None
+                    procname = results['process']
+                    if len(per_proc_result[procname]['reslist']) == 0:
+                        # This is the first time we are adding results
+                        per_proc_result[procname]['reslist'].append(results)
+                    else:
+                        # This is not the first time. Check if the new
+                        # result is same as the old one.
+
+                        lastidx = len(per_proc_result[procname]['reslist']) - 1
+                        cur_res = per_proc_result[procname]['reslist'][lastidx]
+
+                        # If new res is same as old, then we update the
+                        # end status.
+                        if results['ansi_result']['status'] == \
+                                cur_res['ansi_result']['status']:
+                            cur_res['ts_end'] = ts
+                        else:
+                            per_proc_result[procname]['reslist'].append(results)
+
+        # Now copy the data to a file
+        ansible_graph_file = "/tmp/ansible_graph.txt"
+
+        rescount = len(self.ansiresults)
+        test_starttime = self.ansiresults[0][0]['ts']
+        test_endtime = self.ansiresults[rescount - 1][0]['ts']
+
+        with open(ansible_graph_file, "w") as f:
+            data = "starttime##%s\n" % test_starttime
+            f.write(data)
+            for proc in per_proc_result.keys():
+                for result in per_proc_result[proc]['reslist']:
+                    for host in result['ansi_result']['contacted']:
+                        if result['ansi_result']['status'] == "PASS":
+                            resval = "OK"
+                        else:
+                            resval = "CRITICAL"
+                        data = "%s,%s,%s,%s,%s\n" % \
+                            (host, proc, result['ts_start'],
+                             resval, "Service Running")
+                        f.write(data)
+
+                #print  "%s: Start time: %s, End Time: %s, Status: %s" %  \
+                #    (proc, result['ts_start'], result['ts_end'],
+                #     result['ansi_result']['status'])
+            data = "endtime##%s\n" % test_endtime
+            f.write(data)
+
+
 
 
     def start(self, sync=None, finish_execution=None, args=None):
@@ -553,7 +634,7 @@ class AnsibleMonitor(BaseMonitor):
         cnt = 0
         while True:
             cnt += 1
-            if cnt > 6:
+            if cnt > 50:
                 break
             ####################################################
             # Ansible Monitoring Loop.
@@ -597,6 +678,8 @@ class AnsibleMonitor(BaseMonitor):
         self.display_ansible_summary_report()
         self.display_asible_process_report()
         infra.display_infra_report()
+        self.generate_graphs_output()
+
 
 
 
