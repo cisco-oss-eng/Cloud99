@@ -54,6 +54,7 @@ class RallyRunner(BaseRunner):
         while not(line == '' and proc.poll() is not None):
             line = proc.stdout.readline()
             infra.display_on_terminal(self, line)
+            print line
 
         # Let the infra know to complete
         infra.display_on_terminal(self, "Rally finished executing.....")
