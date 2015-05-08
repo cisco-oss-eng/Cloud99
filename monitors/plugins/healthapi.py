@@ -119,7 +119,7 @@ class HealthAPI(BaseMonitor):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
             if detail == False:
-                infra.display_on_terminal(self, "Nova Endpoint Check: OK")
+                infra.display_on_terminal(self, "Nova Endpoint Check: OK", "color=green")
                 results['nova'] = 'OK'
             else:
                 for service in service_list:
