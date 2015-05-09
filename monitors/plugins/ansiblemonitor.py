@@ -26,7 +26,8 @@ SERVICE_LIST = [
     {'service': 'neutron-dhcp-agent', 'role': 'controller'},
     {'service': 'neutron-metadata-agent', 'role': 'controller'},
     {'service': 'neutron-l3-agent', 'role': 'controller'},
-    {'service': 'openstack-nova-compute', 'role': 'compute'}]
+    {'service': 'openstack-nova-compute', 'role': 'compute'},
+    {'service': 'neutron-linuxbridge-agent', 'role':'compute'}]
 
 
 

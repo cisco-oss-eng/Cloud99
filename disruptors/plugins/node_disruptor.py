@@ -71,7 +71,7 @@ class NodeDisruptor(BaseDisruptor):
         # bring it back to stable state
         infra.display_on_terminal(self, "Waiting for the node to become stable")
         if infra.wait_for_ping(ip, 240, 10):
-            infra.display_on_terminal("Node ", ip, " is in stable state",
+            infra.display_on_terminal(self, "Node ", ip, " is in stable state",
                                       "color=green")
 
         infra.display_on_terminal(self, "Finishing Node Disruption")
