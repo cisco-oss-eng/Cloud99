@@ -24,12 +24,16 @@ class data_retriever(object):
                 self.etime = line.rstrip("\n").split("##")[1]
                 continue
             rec = line.rstrip("\n").split(",")
+            #print len(rec)
                               
             host = rec[0]
             service = rec[1]
             ts = rec[2]
             status = rec[3]
-            desc = rec[4]
+            if len(rec) >= 5:
+                desc = rec[4]
+            else:
+                desc = " "
             gData = graphData(host,service,desc,status,ts)
             if self.gDataDict.has_key(rec[0]+"##"+rec[1]):
                 gDataList = self.gDataDict[rec[0]+"##"+rec[1]]
@@ -38,7 +42,7 @@ class data_retriever(object):
                 gDataList = []
                 gDataList.append(gData)
                 self.gDataDict[rec[0]+"##"+rec[1]] = gDataList
-        print "Start Time : %s --- End Time : %s " % (self.stime,self.etime)
+        #print "Start Time : %s --- End Time : %s " % (self.stime,self.etime)
         data_retriever.printgDataDict(self.gDataDict)
     
     def getDataDict(self):
@@ -50,13 +54,13 @@ class data_retriever(object):
     def getETime(self):
         return self.etime
     
-    def caculateServiceStatePercent(self,fileName):
-        self.getTimeLineData(fileName)
+    def caculateServiceStatePercent(self,timelinefile,archivefile):
+        self.getTimeLineData(timelinefile)
         gDataDict = self.getDataDict()
         gData = []
         endTime = map(int,self.etime.split(' ')[1].split(':'))
     
-        print endTime
+        #print endTime
         for k in gDataDict.keys():
             temp = []
             # timemap ={}
@@ -82,7 +86,7 @@ class data_retriever(object):
                     count = count + 1    
             # print temp
             gData.extend(temp)
-        print gData
+        #print gData
         '''
         for item in gData:
             if percDict.has_key(item[0]+item[1]):
@@ -99,7 +103,7 @@ class data_retriever(object):
         import datetime
         for item in gData:
             key = item[0]#+'##'+item[1]
-            print key
+            #print key
             if service_info.has_key(key): # and service_info.get(key).keys() == 'OK' or 'WARNING':
                 if item[1] == 'OK':
                     sec1 = int(datetime.timedelta(hours=item[3][0],minutes=item[3][1],seconds=item[3][2]).total_seconds()) - int(datetime.timedelta(hours=item[2][0],minutes=item[2][1],seconds=item[2][2]).total_seconds())
@@ -139,13 +143,13 @@ class data_retriever(object):
         #find percentage and write into file for archive chart
         startTime = map(int,self.stime.split(' ')[1].split(':'))
         total_seconds = int(datetime.timedelta(hours=endTime[0],minutes=endTime[1],seconds=endTime[2]).total_seconds()) - int(datetime.timedelta(hours=startTime[0],minutes=startTime[1],seconds=startTime[2]).total_seconds())
-        print total_seconds
+        #print total_seconds
         for key,value in service_info.iteritems():
             for i in value.keys():
                 service_info[key][i] = (value.get(i)*100/total_seconds)#round((value.get(i)*100/total_seconds),2)
 
-        print service_info
-        f = open('/tmp/archive1','w+')
+        #print service_info
+        f = open(archivefile,'w+')
         for key in service_info.keys():
             # hostname,service_name = key.split(' - ')
             service_name,hostname = key.split(' - ')
@@ -164,12 +168,12 @@ class data_retriever(object):
         lines = fp.readlines()
         for line in lines:
             rec = line.rstrip("\n").split(",")
-            print rec
+            #print rec
             serviceHost = rec[0]
             serviceName = rec[1]
             # desc = rec[1]
             data = [int(rec[2]),int(rec[3])] #rec[2:] # [ok,critical]
-            print data
+            #print data
             gData = graphData(serviceName,serviceHost,data=data)
             if self.gDataDict.has_key(rec[0]+'##'+rec[1]):
                 gDataList = self.gDataDict[rec[0]+'##'+rec[1]]

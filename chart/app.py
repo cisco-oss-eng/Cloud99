@@ -15,54 +15,101 @@ def index():
 #def chart():
 #    return render_template('chart.html')
 
-@app.route('/timeline')
+@app.route('/ntimeline')
 def timeline():
-    print "Time line"
+    #print "Time line"
     return render_template('timeline.html')
 
-@app.route('/archive')
+@app.route('/narchive')
 def archive():
-    print "archive data"
+    #print "archive data"
     return render_template('archive.html')
 
 
+@app.route('/htimeline')
+def htimeline():
+    #print "R Time line"
+    return render_template('htimeline.html')
+
+@app.route('/harchive')
+def harchive():
+    #print "R archive data"
+    return render_template('harchive.html')
+
+@app.route('/anstimeline')
+def anstimeline():
+    #print "R Time line"
+    return render_template('anstimeline.html')
+
+@app.route('/ansarchive')
+def ansarchive():
+    #print "R archive data"
+    return render_template('ansarchive.html')
+
+
 @app.route('/archivedata')
-def archivedata():
-    print "Time line"
+def narchivedata():
+    return archivedata("anrecord")
+
+@app.route('/harchivedata')
+def harchivedata():
+    return archivedata("ahealthapi.txt")
+
+@app.route('/ansarchivedata')
+def ansarchivedata():
+    return archivedata("aansible_graph.txt");
+    
+def archivedata(filename):
+    archivefile = "/tmp/"+filename
+    #print "Time line"
     # return render_template('archive.html')
     gData = [['Services', 'OK', 'CRITICAL']]
     dr = data_retriever()
-    dr.getArchiveData("/tmp/archive1")
+    dr.getArchiveData(archivefile)
     gDataDict = dr.getDataDict()
-    print gDataDict
+    #print gDataDict
     # gdata = []
     for k in gDataDict.keys():
         servicename = k.split('##')[1]
         for item in gDataDict.get(k):
             temp = []
-            print item.getServiceName()
-            print item.getData()
-            temp.append(item.getServiceName())
+            #print item.getServiceName()
+            #print item.getData()
+            temp.append(item.getServiceName()+"-"+item.getHostName())
             temp.extend(item.getData())
-            print temp
+            #print temp
         gData.append(temp)
-    print gData
+    #print gData
 
     # gdata = [['Services', 'OK', 'CRITICAL'],['Service-1', 60, 40],['Service-2', 80, 20,],['Service-3', 70, 30]]
     return str(gData)
 
+
 @app.route('/tldata')
-def timelinedata():
+def ntimelinedata():
+    return timelinedata("nrecord")
+
+@app.route('/htldata')
+def rtimelinedata():
+    return timelinedata("healthapi.txt")
+
+@app.route('/anstldata')
+def anstimelinedata():
+	return timelinedata("ansible_graph.txt")
+
+def timelinedata(filename):
+    timelinefile = "/tmp/"+filename
+    archivefile = "/tmp/a"+filename
     dr = data_retriever()
-    dr.getTimeLineData("/tmp/nrecord")
+    dr.getTimeLineData(timelinefile)
     dr1 = data_retriever()
-    dr1.caculateServiceStatePercent("/tmp/nrecord")
+    dr1.caculateServiceStatePercent(timelinefile,archivefile)
     gDataDict = dr.getDataDict()
     gDataDict = dr.getDataDict()
     gData = []
     endTime = map(int,dr.getETime().split(' ')[1].split(':'))
     
-    print endTime
+    #print endTime
     for k in gDataDict.keys():
         temp = []
         # timemap ={}
@@ -88,7 +135,7 @@ def timelinedata():
                 count = count + 1    
         # print temp
         gData.extend(temp)
-    print gData    
+    #print gData    
 
 
     #gData = [['NS','OK',[14,0,0],[14,15,0]],['NS','CRITICAL',[14,15,0],[14,20,0]]]
@@ -117,7 +164,7 @@ def timelinedata():
 def add_numbers():
     a = request.args.get('a', 0, type=int)
     b = request.args.get('b', 0, type=int)
-    print str(jsonify(result=a + b))
+    #print str(jsonify(result=a + b))
     return jsonify(result=a + b)
 
 if __name__ == '__main__':
