@@ -36,7 +36,12 @@ disruptors:
        # Where specific services are running in a controller
        custom_controller:
            role: nova, cinder
-       
+ 
+    container_disruptor:
+       keystone_container:
+           container_name: keystone_v1
+           role: controller
+
     process_disruptor:
        nova_api:
            process_name : openstack-nova-api.service

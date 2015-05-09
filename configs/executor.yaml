@@ -12,8 +12,9 @@ executors:
         ha_interval: 45 
 
         # disruption scenario
-        node_disruption : [compute_node]
-        execute: [boot_test]
+        #node_disruption : [compute_node]
+        execute: [keystone_test]
         start: [openstack_api, ansible]
         #process_disruption: [nova_scheduler]
+        container_disruption: [keystone_container]
     -
