@@ -9,6 +9,7 @@ import openstack_api.glance_api
 import openstack_api.cinder_api
 import openstack_api.keystone_api
 import collections
+import os
 
 LOG = infra.ha_logging(__name__)
 
@@ -19,6 +20,7 @@ class HealthAPI(BaseMonitor):
     finish_execution = None
     agents_downtime_dict = collections.OrderedDict()
     endpoint_downtime_dict = collections.OrderedDict()
+    nagios_graph_file = "/tmp/ha_infra/healthapi.txt"
 
     def start(self, sync=None, finish_execution=None, mode="basic"):
         infra.display_on_terminal(self, 'Starting Endpoint Health Check')
@@ -52,7 +54,11 @@ class HealthAPI(BaseMonitor):
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
 
+        self.add_to_graph_file("starttime##"+utils.utils.get_monitor_timestamp
+        (complete_timestamp=True))
         self.health_check_start()
+        self.add_to_graph_file("endtime##"+utils.utils.get_monitor_timestamp
+        (complete_timestamp=True))
         infra.display_on_terminal(self, "Finished Monitoring")
 
         # Generate downtime range of all the endpoints
@@ -90,12 +96,13 @@ class HealthAPI(BaseMonitor):
         glance_instance = \
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
-
         while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
+            self.ts, self.cts = utils.utils.get_monitor_timestamp(), \
+                                   utils.utils.get_monitor_timestamp(
+                                       complete_timestamp=True)
 
-            self.ts = utils.utils.get_monitor_timestamp()
             ep_results['timestamp'] = self.ts
             self.nova_endpoint_check(nova_instance, ep_results)
             self.neutron_endpoint_check(neutron_instance , ep_results)
@@ -374,7 +381,11 @@ class HealthAPI(BaseMonitor):
 
     def update_downtime_dict(self, downtime_dict, agent_name,
                              host_name, status):
-
+        # adding to graph file
+        # format control-1,Neutron Network List,2015-05-08 11:30:37,OK,4
+        g_status = "CRITICAL" if status == "FAIL" else status
+        self.add_to_graph_file(host_name+","+agent_name+
+                               ","+self.cts+","+g_status+","+"")
         if downtime_dict.get(agent_name, None):
             agents_host_list = downtime_dict[agent_name]
 
@@ -389,6 +400,16 @@ class HealthAPI(BaseMonitor):
             down_dict = collections.OrderedDict({self.ts: status})
             downtime_dict[agent_name] = \
                 [{host_name: down_dict}]
+
+    def add_to_graph_file(self, msg):
+        msg += "\n"
+        if not os.path.isfile(self.nagios_graph_file):
+            with open(self.nagios_graph_file, "w+") as f:
+                f.write(msg)
+        else:
+            with open(self.nagios_graph_file, "a+") as f:
+                f.write(msg)
+
 
 
 """ 

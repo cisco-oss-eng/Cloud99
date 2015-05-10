@@ -1,0 +1,14 @@
+runners:
+    rally:
+        boot_test:
+            scenario_name: boot 
+            rally_path:  /Users/akalambu/python_venv/venv/bin/rally 
+            scenario_file: /Users/akalambu/rally/rally/boot.json
+        rally_sanity:
+            scenario_name : sanity
+            rally_path: /Users/akalambu/python_venv/venv/bin/rally
+            scenario_file: /Users/akalambu/rally/rally/rally_sanity.json
+        keystone_test:
+            scenario_name : keystone 
+            rally_path: /usr/local/bin/rally
+            scenario_file: /Users/pradeech/infraRally/rally/samples/tasks/scenarios/keystone/create-tenant-with-users.json

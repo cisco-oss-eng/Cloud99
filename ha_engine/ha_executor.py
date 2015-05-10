@@ -27,8 +27,8 @@ class HAExecutor(object):
         self.sync_objects = {}
         self.finish_execution_objects = {}
         self.open_pipes = []
-        self.xterm_position = ["120x35-100-100", "120x35+100-100",
-                               "120x35+100+100", "120x35-100+100"]*10
+        self.xterm_position = ["100x35-100-100", "100x35+100-100",
+                               "100x35+100+100", "100x35-100+100"]*10
 
         if self.executor_data:
             ha_infra.dump_on_console(self.executor_data, "Executor Data")
@@ -196,7 +196,11 @@ class HAExecutor(object):
                     pos = self.get_xterm_position()
 
                     LOG.info("XTERM of %s will read from %s", node, pipe_path)
-                    subprocess.Popen(['xterm', '-geometry', pos,
+                    subprocess.Popen(['xterm',
+                                      '-fg', 'white',
+                                      '-bg', 'black',
+                                      '-fa', "'Monospace'", '-fs', '10',
+                                      '-geometry', pos,
                                       '-e', 'tail', '-f', pipe_path])
                     LOG.info("Creating a thread for %s", node)
                     t = multiprocessing.Process(target=self.execute_the_command,
