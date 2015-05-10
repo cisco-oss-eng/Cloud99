@@ -53,10 +53,16 @@ class NagiosConfigGen(object):
             hstObj = HostObject(hostname,ip.rstrip(),username,password,role,False)
             self.openstack_vm_list.append(hstObj)
             ctr+=1
-        print self.openstack_vm_list
+        #print self.openstack_vm_list
 
-    def performNagiosServiceCheck(self):
-        for hostObj in self.openstack_host_list:
+    def performNagiosServiceCheck(self,ntype):
+        hostlist = []
+        if ntype == "node":
+            hostlist = self.openstack_host_list
+        else:
+            hostlist = self.openstack_vm_list
+
+        for hostObj in hostlist:
             ip = hostObj.getIp()
             user = hostObj.getUser()
             pwd = hostObj.getPassword()
@@ -77,20 +83,21 @@ class NagiosConfigGen(object):
 
     def generateNagiosHostConfig(self):
         for hostObj in self.openstack_host_list:
-            if hostObj.isNagiosRunning():
-                NagiosConfigGenUtil.generate_nagios_host_config(hostObj.getIp(),hostObj.getHost(),hostObj.getRole())
+            NagiosConfigGenUtil.generate_nagios_host_config(hostObj.getIp(),hostObj.getHost(),hostObj.getRole())
                 #NagiosConfigGenerator.generate_nagios_host_service(hostObj.getIp(),hostObj.getHost()) 
 
     def generateNagiosAppVmConfig(self):
         for hostObj in self.openstack_vm_list:
+            #if hostObj.isNagiosRunning():
             NagiosConfigGenUtil.generate_nagios_appvm_config(hostObj.getIp(),hostObj.getHost(),hostObj.getRole())
 
 if __name__ == '__main__':
     yhp = NagiosConfigGen()
     yhp.setOpenstackNodeIp()
-    yhp.performNagiosServiceCheck()
+    #yhp.performNagiosServiceCheck("node")
     yhp.generateNagiosHostConfig()
     yhp.setOpenstackAppVmIp("appvmlist")
-    yhp.printHostList()
+    #yhp.performNagiosServiceCheck("appvm")
+    #yhp.printHostList()
     yhp.generateNagiosAppVmConfig()
   
