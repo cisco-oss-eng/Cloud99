@@ -16,18 +16,18 @@ SERVICE_LIST = [
     {'service': 'neutron-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
     {'service': 'glance-registry', 'role': 'controller'},
-    {'service': 'openstack-nova-api', 'role': 'controller'},
+    {'service': 'nova-api', 'role': 'controller'},
     {'service': 'rabbitmq-server', 'role': 'controller'},
-    {'service': 'openstack-glance-api', 'role': 'controller'},
-    {'service': 'openstack-glance-registry', 'role': 'controller'},
-    {'service': 'openstack-nova-novncproxy', 'role': 'controller'},
-    {'service': 'openstack-nova-conductor', 'role': 'controller'},
-    {'service': 'openstack-nova-scheduler', 'role': 'controller'},
-    {'service': 'neutron-dhcp-agent', 'role': 'controller'},
-    {'service': 'neutron-metadata-agent', 'role': 'controller'},
+    {'service': 'glance-api', 'role': 'controller'},
+    {'service': 'glance-registry', 'role': 'controller'},
+    {'service': 'nova-novncproxy', 'role': 'controller'},
+    {'service': 'nova-conductor', 'role': 'controller'},
+    {'service': 'nova-scheduler', 'role': 'controller'},
+    {'service': 'dhcp-agent', 'role': 'controller'},
+    {'service': 'metadata-agent', 'role': 'controller'},
     {'service': 'neutron-l3-agent', 'role': 'controller'},
-    {'service': 'openstack-nova-compute', 'role': 'compute'},
-    {'service': 'neutron-linuxbridge-agent', 'role':'compute'}]
+    {'service': 'neutron-linuxbridge-agent', 'role': 'controller'},
+    {'service': 'nova-compute', 'role': 'compute'}]
 
 
 
@@ -260,7 +260,7 @@ class AnsibleRunner(object):
             print "ANSIBLE: [%s] operation failed [%s] [hosts: %s]" % \
                 (module, complex_args, failed_hosts)
 
-        return results
+        return results, failed_hosts
 
     def ansible_execute_command(self, host_list=None, remote_user=None,
                                 args=None, complex_args=None, forks=2):
@@ -302,7 +302,8 @@ class AnsibleMonitor(BaseMonitor):
     Anisble Monitor.
     '''
     finish_execution = None
-    def display_msg_on_term(self, msg, status):
+
+    def display_msg_on_term(self, msg, status, host_list=None):
         '''
         Generic function invoked by other check functions to print
         status.
@@ -310,6 +311,9 @@ class AnsibleMonitor(BaseMonitor):
         msg = msg.ljust(50)
         status_msg = status.ljust(10)
         msg = msg + status_msg
+
+        if host_list is not None and len(host_list) > 0:
+            msg = msg + str(host_list)
         if status == 'PASS':
             infra.display_on_terminal(self, msg, "color=green")
         else:
@@ -335,14 +339,15 @@ class AnsibleMonitor(BaseMonitor):
         ansi_result = {}
         ansi_result['name'] = "ssh_ping_check"
 
-        ansi_result['ansi_result'] = self.ansirunner.\
+        ansi_result['ansi_result'], failed_hosts = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="ping")
 
         msg = "SSH & Ping Check:"
         self.display_msg_on_term(msg,
-                                 ansi_result['ansi_result']['status'])
+                                 ansi_result['ansi_result']['status'],
+                                 host_list=failed_hosts)
 
         return ansi_result
 
@@ -355,9 +360,12 @@ class AnsibleMonitor(BaseMonitor):
         ansi_result['name'] = "process_check"
         ansi_result['process'] = process_name
 
-        #args = "ps -ef | grep %s | grep -v grep" % process_name
-        args = "systemctl | grep %s | grep running" % process_name
-        ansi_result['ansi_result'] = self.ansirunner.\
+        if self.dockerized is True:
+            args = "ps -ef | grep %s | grep -v grep" % process_name
+        else:
+            args = "systemctl | grep %s | grep running" % process_name
+
+        ansi_result['ansi_result'], failed_hosts = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="shell",
@@ -365,7 +373,8 @@ class AnsibleMonitor(BaseMonitor):
 
         msg = "Process Check [%s]" % process_name
         self.display_msg_on_term(msg,
-                                 ansi_result['ansi_result']['status'])
+                                 ansi_result['ansi_result']['status'],
+                                 host_list=failed_hosts)
 
         return ansi_result
 
@@ -377,16 +386,22 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "rabbitmq_check"
+        rabbit_container = "rabbitmq_v1"
 
-        args = "rabbitmqctl status | grep listeners"
-        ansi_result['ansi_result'] = self.ansirunner.\
+        if self.dockerized is True:
+            args = "docker exec %s rabbitmqctl cluster_status | grep running" % \
+                rabbit_container
+        else:
+            args = "rabbitmqctl status | grep listeners"
+        ansi_result['ansi_result'], failed_hosts = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
         msg = "RabbitMQ Check"
         self.display_msg_on_term(msg,
-                                 ansi_result['ansi_result']['status'])
+                                 ansi_result['ansi_result']['status'],
+                                 host_list=failed_hosts)
 
         return ansi_result
 
@@ -398,16 +413,24 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "mariadb_check"
-        args = r"mysql -u %s -p%s -e 'show databases;'| grep cinder" % \
-            (self.mariadb_user, self.mariadb_password)
-        ansi_result['ansi_result'] = self.ansirunner.\
+        if self.dockerized is True:
+            dock = "docker exec mariadb_v1"
+            args = r"%s mysql -u %s -p%s -e 'show databases;'" %  \
+                (dock, self.mariadb_user, self.mariadb_password)
+        else:
+            args = r"mysql -u %s -p%s -e 'show databases;'| grep nova" % \
+                (self.mariadb_user, self.mariadb_password)
+
+        ansi_result['ansi_result'], failed_hosts = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
+
         msg = "MariaDB Check"
         self.display_msg_on_term(msg,
-                                 ansi_result['ansi_result']['status'])
+                                 ansi_result['ansi_result']['status'],
+                                 host_list=failed_hosts)
 
         return ansi_result
 
@@ -600,6 +623,7 @@ class AnsibleMonitor(BaseMonitor):
         print "User data: ", data
         self.frequency = data['ansible'].get('frequency', 5)
         self.max_hist_size = data['ansible'].get('max_hist', 25)
+        self.dockerized = data['ansible'].get('dockerized', False)
 
         # Get MariaDB Username/pass
         self.mariadb_user = None
@@ -678,7 +702,6 @@ class AnsibleMonitor(BaseMonitor):
         self.display_asible_process_report()
         infra.display_infra_report()
         self.generate_graphs_output()
-
 
 
 
