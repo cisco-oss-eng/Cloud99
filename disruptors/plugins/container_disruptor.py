@@ -1,6 +1,7 @@
 from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
-from ha_constants import  HAConstants
+from ha_engine.ha_constants import HAConstants
+from utils import utils
 import time
 
 LOG = infra.ha_logging(__name__)
@@ -22,6 +23,7 @@ class ContainerDisruptor(BaseDisruptor):
         infra.create_report_table(self, table_name)
         infra.add_table_headers(self, table_name,
                                 ["Host", "Container Process",
+                                 "Timestamp",
                                  "Status of Disruption"])
         input_args_dict = self.get_input_arguments()
         node_name = input_args_dict.keys()[0]
@@ -65,7 +67,12 @@ class ContainerDisruptor(BaseDisruptor):
                 code, out, error = infra.ssh_and_execute_command(ip, user,
                                                                  password,
                                                             container_stop_command)
-
+                infra.add_table_rows(self, table_name, [[ip,
+                                                         container_name,
+                                                         utils.get_timestamp(),
+                                                         HAConstants.WARNING +
+                                                         'Stopped' +
+                                                         HAConstants.ENDC]])
                 infra.display_on_terminal(self, "Sleeping for interval ",
                                       str(ha_interval), " seconds")
                 time.sleep(ha_interval)
@@ -77,8 +84,9 @@ class ContainerDisruptor(BaseDisruptor):
                 time.sleep(ha_interval)
                 infra.add_table_rows(self, table_name, [[ip,
                                                          container_name,
+                                                         utils.get_timestamp(),
                                                          HAConstants.OKGREEN +
-                                                         'PASS' +
+                                                         'Started' +
                                                          HAConstants.ENDC]])
 
         # bring it back to stable state

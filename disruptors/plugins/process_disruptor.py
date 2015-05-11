@@ -1,7 +1,8 @@
 from disruptors.baseDisruptor import BaseDisruptor
-from ha_constants import HAConstants
+from ha_engine.ha_constants import HAConstants
 import ha_engine.ha_infra as infra
 import time
+from utils import utils
 
 LOG = infra.ha_logging(__name__)
 
@@ -68,7 +69,11 @@ class ProcessDisruptor(BaseDisruptor):
                 code, out, error = infra.ssh_and_execute_command(ip, user,
                                                                  password,
                                                             rhel_stop_command)
-
+                infra.add_table_rows(self, table_name,
+                                     [[ip, process_name,
+                                       utils.get_timestamp(),
+                                       HAConstants.WARNING +
+                                       'Stopped' + HAConstants.ENDC]])
                 infra.display_on_terminal(self, "Sleeping for interval ",
                                       str(ha_interval), " seconds")
                 time.sleep(ha_interval)
@@ -79,9 +84,10 @@ class ProcessDisruptor(BaseDisruptor):
                                                          rhel_start_command)
                 time.sleep(ha_interval)
                 infra.add_table_rows(self, table_name,
-                                     [[node, process_name,
+                                     [[ip, process_name,
+                                       utils.get_timestamp(),
                                        HAConstants.OKGREEN +
-                                       'PASS' + HAConstants.ENDC]])
+                                       'Started' + HAConstants.ENDC]])
 
         # bring it back to stable state
         infra.display_on_terminal(self, "Bringing the process  to stable state")

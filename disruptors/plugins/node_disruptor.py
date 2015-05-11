@@ -1,6 +1,7 @@
 from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
-from ha_constants import HAConstants
+from ha_engine.ha_constants import HAConstants
+from utils import utils
 import time
 LOG = infra.ha_logging(__name__)
 
@@ -19,7 +20,8 @@ class NodeDisruptor(BaseDisruptor):
         table_name = "Node Disruption"
         infra.create_report_table(self, table_name)
         infra.add_table_headers(self, table_name,
-                                ["Node", "Status of Disruption"])
+                                ["Node", "IP", "TimeStamp",
+                                 "Status of Disruption"])
 
         infra.display_on_terminal(self, "Entering  Process Disruption plugin")
 
@@ -77,8 +79,10 @@ class NodeDisruptor(BaseDisruptor):
                                           str(ha_interval))
                 #time.sleep(ha_interval)
                 infra.add_table_rows(self, table_name, [[node,
+                                                         ip,
+                                                         utils.get_timestamp(),
                                                          HAConstants.OKGREEN +
-                                                         'PASS' +
+                                                         'Rebooted' +
                                                          HAConstants.ENDC]])
 
         # bring it back to stable state
