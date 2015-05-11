@@ -69,7 +69,7 @@ class NagiosMonitor(BaseMonitor):
             data = self.getNagiosData(self.url, ip_address)
             self.processAndReport(data,self.reportDict,host_filter,filterType) 
             #print self.reportDict
-            self.printServiceStateReport(self.reportDict)
+            #self.printServiceStateReport(self.reportDict)
             time.sleep(20)
             # below counter check and break loop will be removed during actual execution
             ctr+=1
@@ -83,7 +83,7 @@ class NagiosMonitor(BaseMonitor):
     def processAndReport(self,data,reportDict,host_filter,filterType):
         #print "================"+filterType
         #print host_filter
-        format_string = "%s  |  %s  |  %s  |  %s  |  %s  | "
+        format_string = "%s  |  %s  |  %s  | "
         ret = []
         for ip in data:
             hostService = data[ip]["services"]
@@ -114,8 +114,8 @@ class NagiosMonitor(BaseMonitor):
                                                                                     ["current_state"]),
                                                          data[ip]["services"][key]["plugin_output"])
             #columns
-        print '-' * 157
-        tblLine = '-' * 157
+        #print '-' * 157
+        tblLine = '-' * 82
         infra.display_on_terminal(self,tblLine)
         """
         print NagiosMonitor.get_severity_color('INFO', format_string % (
@@ -126,9 +126,9 @@ class NagiosMonitor(BaseMonitor):
         """
         infra.display_on_terminal(self,
                 NagiosMonitor.get_severity_color('INFO', format_string % (
-                'Time'.ljust(20),'HostName'.ljust(20),
+                'HostName'.ljust(15),
                 "Service Description".ljust(45),
-                "Status".ljust(9), "Status Information".ljust(40))))
+                "Status".ljust(9))))
         infra.display_on_terminal(self,tblLine)
         
         #print '-' * 157
@@ -183,17 +183,17 @@ class NagiosMonitor(BaseMonitor):
     
     def printData(self,format_string,item):
         #print format_string % (time.ctime(int(time.time())).ljust(25),
+        """
         print format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
                 item.get("ip").ljust(20),
                 item.get(NagiosMonitor.headers[1])[:40].ljust(45),
                 item.get("status").ljust(9),
                 item.get("output").ljust(40))
-        
-        infra.display_on_terminal(self,format_string % (datetime.datetime.fromtimestamp(int(time.time())).strftime('%Y-%m-%d %H:%M:%S').ljust(20),
-                item.get("ip").ljust(20),
+        """
+        infra.display_on_terminal(self,format_string % (
+                item.get("ip").ljust(15),
                 item.get(NagiosMonitor.headers[1])[:40].ljust(45),
-                item.get("status").ljust(9),
-                item.get("output").ljust(40)))
+                item.get("status").ljust(9)))
 
 
     @staticmethod
