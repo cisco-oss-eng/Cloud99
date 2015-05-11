@@ -336,6 +336,8 @@ class HealthAPI(BaseMonitor):
                             downtime_range_start = ts
                         if cur == 'FAIL' and prev == cur:
                             downtime_range_stop = ts
+                        if cur == 'FAIL' and count == len(host_dict):
+                            downtime_range_stop = ts
                         if cur == 'OK' and prev == 'FAIL' or\
                                 (cur == 'FAIL' and count == len(host_dict)):
                             downtime_range.add(downtime_range_start + " to " +

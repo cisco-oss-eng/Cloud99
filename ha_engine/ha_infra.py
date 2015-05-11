@@ -47,10 +47,6 @@ def stringc(text, color):
     """String in color."""
     return "\033[" + codeCodes[color] + "m" + text + "\033[0m"
 
-# --- end "pretty"
-
-
-
 ha_infra_report_tables = collections.OrderedDict({'Disruptors': {},
                                                   'Monitors': {},
                                                   'Runners': {}})
@@ -189,7 +185,7 @@ def display_infra_report(show_historical=False):
                     print "=" * len(pname)
                     table_count = 0
                     for plugin_table in plugin_tables[plugin_name]:
-                        if plugin_name == "rally" and not displayed:
+                        if isinstance(plugin_table, str) and not displayed:
                                 print plugin_table
                                 displayed = True
                                 break

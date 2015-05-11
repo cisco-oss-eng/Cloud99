@@ -100,6 +100,7 @@ class ProcessDisruptor(BaseDisruptor):
     def set_expected_failures(self, expected_failures):
         self.expected_failures = expected_failures
 
+
     def node_disruption(self, sync=None, finish_execution=None):
         pass
 
