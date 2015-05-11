@@ -198,7 +198,7 @@ class data_retriever(object):
     
 if __name__ == '__main__':
     dr = data_retriever()
-    dr.caculateServiceStatePercent("/tmp/nrecord")
+    dr.caculateServiceStatePercent("/tmp/ha_infra/nrecord")
     
     #dr.getArchiveData('/home/openstack/Desktop/archive')
     #gdata = dr.getDataDict()

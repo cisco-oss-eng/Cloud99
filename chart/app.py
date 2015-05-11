@@ -19,6 +19,7 @@ def index():
 def timeline():
     #print "Time line"
     return render_template('timeline.html')
+    #return render_template('menu1.html')
 
 @app.route('/narchive')
 def archive():
@@ -60,7 +61,7 @@ def ansarchivedata():
     return archivedata("aansible_graph.txt");
     
 def archivedata(filename):
-    archivefile = "/tmp/"+filename
+    archivefile = "/tmp/ha_infra/"+filename
     #print "Time line"
     # return render_template('archive.html')
     gData = [['Services', 'OK', 'CRITICAL']]
@@ -98,8 +99,8 @@ def anstimelinedata():
 	return timelinedata("ansible_graph.txt")
 
 def timelinedata(filename):
-    timelinefile = "/tmp/"+filename
-    archivefile = "/tmp/a"+filename
+    timelinefile = "/tmp/ha_infra/"+filename
+    archivefile = "/tmp/ha_infra/a"+filename
     dr = data_retriever()
     dr.getTimeLineData(timelinefile)
     dr1 = data_retriever()

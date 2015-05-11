@@ -26,6 +26,7 @@ class NagiosMonitor(BaseMonitor):
     polling_interval = 20
     ip_filter = []
     reportDict = {}
+    summaryDict = {}
     url = "http://%s:8080/state"
     # path = '/Users/pradeech/HA1/Cloud_HA_Testframework_v1/configs/user_configs/nagios_config.cfg'
     path = os.getcwd() + os.sep + 'configs/user_configs/nagios_config.cfg'
@@ -67,7 +68,7 @@ class NagiosMonitor(BaseMonitor):
         #while infra.is_execution_completed(self.finish_execution) is False:
         while(finish_execution):
             data = self.getNagiosData(self.url, ip_address)
-            self.processAndReport(data,self.reportDict,host_filter,filterType) 
+            self.processAndReport(data,self.reportDict,host_filter,filterType,self.summaryDict) 
             #print self.reportDict
             #self.printServiceStateReport(self.reportDict)
             time.sleep(20)
@@ -76,11 +77,12 @@ class NagiosMonitor(BaseMonitor):
             if ctr == 10:
                 break
         endTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        #NagiosMonitor.printServiceState(self.reportDict,startTime,endTime)
         NagiosMonitor.writeToFile(self.reportDict,startTime,endTime)
         
     
     #@staticmethod
-    def processAndReport(self,data,reportDict,host_filter,filterType):
+    def processAndReport(self,data,reportDict,host_filter,filterType,summaryDict):
         #print "================"+filterType
         #print host_filter
         format_string = "%s  |  %s  |  %s  | "
@@ -110,8 +112,10 @@ class NagiosMonitor(BaseMonitor):
                     NagiosMonitor.splitLines(result,ret)
                 
                 NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,
-                                                         NagiosMonitor.getStatusStr(data[ip]["services"][key]
-                                                                                    ["current_state"]),
+                            NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
+                                                        data[ip]["services"][key]["plugin_output"])
+                NagiosMonitor.calSummaryReport(ip,key,summaryDict,reportDict,
+                            NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
                                                          data[ip]["services"][key]["plugin_output"])
             #columns
         #print '-' * 157
@@ -207,7 +211,7 @@ class NagiosMonitor(BaseMonitor):
     @staticmethod
     def writeToFile(reportDict,stime,etime):
         
-        f = open("/tmp/nrecord",'w+')
+        f = open("/tmp/ha_infra/nrecord",'w+')
         f.write("starttime##"+stime+"\n")
         for dkey in reportDict:
             serviceList = reportDict.get(dkey)
@@ -307,9 +311,25 @@ class NagiosMonitor(BaseMonitor):
             timeStampStatusTup = ipDescStatusList[listLen - 1]
             if timeStampStatusTup[1] != status:
                 tsst=(time.time(),status,ldesc)
-                ipDescStatusList.append(tsst)
         else:
             ipDescStatusList=[]
             tsst=(time.time(),status,ldesc)
             ipDescStatusList.append(tsst)
             reportDict[dkey]=ipDescStatusList
+
+    @staticmethod
+    def calSummaryReport(ip,desc,summaryDict,reportDict,status,ldesc):
+        dkey="%s##%s" % (ip,desc)
+        skey="%s##%s" % (dkey,status)
+        if not summaryDict.has_key(skey):
+            summaryDict[skey] = 0
+        if reportDict.has_key(dkey):
+            ipDescStatusList = reportDict.get(dkey)
+            listLen = len(ipDescStatusList)
+            timeStampStatusTup = ipDescStatusList[listLen - 1]
+            if timeStampStatusTup[1] != status:
+                pTime = ipDescStatusList[0]
+                seconds = time.time().total_seconds() - pTime.total_seconds()
+                summaryDict[skey] = summaryDict[skey] + seconds
+                print summaryDict[skey]
+            
