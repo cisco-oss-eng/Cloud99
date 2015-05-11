@@ -9,6 +9,7 @@ import os
 import signal
 import sys
 import shutil
+import utils.utils as utils
 
 LOG = ha_infra.ha_logging(__name__)
 
@@ -51,17 +52,20 @@ class HAExecutor(object):
         if os.path.exists(self.infra_path):
             shutil.rmtree(self.infra_path)
 
-
+        ha_infra.start_run_time = \
+            utils.get_timestamp(complete_timestamp=True)
         for executor_index, executor_block in enumerate(execute):
-                parallel = False
-                repeat_count = 1
-                LOG.info('Executing %s' % str(executor_index+1))
-
                 # Check whether the executor block needs to be repeated
                 # process the repeat commandi
                 if not executor_block:
+                    ha_infra.stop_run_time = \
+                        utils.get_timestamp(complete_timestamp=True)
                     LOG.info("******** Completing the execution ******** ")
                     ha_infra.ha_exit(0)
+
+                parallel = False
+                repeat_count = 1
+                LOG.info('Executing %s' % str(executor_index+1))
 
                 if 'repeat' in executor_block:
                     repeat_count = executor_block.get('repeat', 1)
@@ -106,7 +110,11 @@ class HAExecutor(object):
                     try:
                         # Execute the command and the respective parameters
                         del self.executor_threads[:]
+
                         for step_action, nodes in executor_block.iteritems():
+                            launched_process = 0
+                            ha_infra.set_launched_process_count(
+                                launched_process)
                             self.execute_the_block(executor_index,
                                                    nodes,
                                                    step_action,
@@ -118,6 +126,8 @@ class HAExecutor(object):
                             # start all the executor threads
                             [t.start() for t in self.executor_threads]
                             [t.join() for t in self.executor_threads]
+
+                        ha_infra.display_infra_report()
                     except NotImplementedError as runerror:
                         LOG.critical('Unable to execute %s - %s'
                                      % runerror, step_action)
@@ -134,6 +144,8 @@ class HAExecutor(object):
                         ha_infra.ha_exit(0)
 
         LOG.info("******** Completing the executions ******** ")
+        ha_infra.stop_run_time = \
+            utils.get_timestamp(complete_timestamp=True)
         # clean up all the pipes
         for f in self.open_pipes:
             os.unlink(f)
@@ -141,6 +153,7 @@ class HAExecutor(object):
     def execute_the_block(self, executor_index, nodes, step_action,
                           ha_interval, parallel=False, use_sync=False):
 
+        use_process = False
         node_list = []
         if isinstance(nodes, list):
             node_list = nodes
@@ -152,12 +165,14 @@ class HAExecutor(object):
                 if self.sync_objects.get(executor_index, None):
                     sync = self.sync_objects[executor_index]
                 else:
-                    sync = multiprocessing.Event()
+                    sync = multiprocessing.Event() if use_process\
+                        else threading.Event()
                     self.sync_objects[executor_index] = sync
             if self.finish_execution_objects.get(executor_index, None):
                 finish_execution = self.finish_execution_objects[executor_index]
             else:
-                finish_execution = multiprocessing.Event()
+                finish_execution = multiprocessing.Event() if use_process \
+                    else threading.Event()
                 self.finish_execution_objects[executor_index] = finish_execution
 
         for node in node_list:
@@ -195,6 +210,7 @@ class HAExecutor(object):
                     self.open_pipes.append(pipe_path_dir)
                     pos = self.get_xterm_position()
 
+                    ha_infra.total_launched_process += 1
                     LOG.info("XTERM of %s will read from %s", node, pipe_path)
                     subprocess.Popen(['xterm',
                                       '-fg', 'white',
@@ -203,10 +219,19 @@ class HAExecutor(object):
                                       '-geometry', pos,
                                       '-e', 'tail', '-f', pipe_path])
                     LOG.info("Creating a thread for %s", node)
-                    t = multiprocessing.Process(target=self.execute_the_command,
-                                            args=(class_object, node,
-                                                  step_action, ha_interval,
-                                                  sync, finish_execution))
+
+                    if use_process:
+                        '''
+                        t = multiprocessing.Process(target=self.execute_the_command,
+                                                args=(class_object, node,
+                                                      step_action, ha_interval,
+                                                      sync, finish_execution))
+                        '''
+                    else:
+                        t = threading.Thread(target=self.execute_the_command,
+                                                args=(class_object, node,
+                                                      step_action, ha_interval,
+                                                      sync, finish_execution))
                     self.executor_threads.append(t)
                 else:
                     LOG.critical("Sequence mode is not supported")
@@ -216,6 +241,7 @@ class HAExecutor(object):
             else:
                 LOG.critical('Unknown command: %s' % str(step_action))
                 ha_infra.ha_exit(0)
+
     @staticmethod
     def execute_the_command(class_object, node, cmd, ha_interval, sync=None,
                             finish_execution=None):

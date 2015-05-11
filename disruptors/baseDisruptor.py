@@ -45,3 +45,6 @@ class BaseDisruptor(object):
 
     def get_ha_interval(self):
         return self.ha_interval
+
+    def set_expected_failures(self):
+        raise NotImplementedError('Subclass should implement this method')

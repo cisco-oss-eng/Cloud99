@@ -1,5 +1,6 @@
 from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
+from ha_constants import HAConstants
 import time
 LOG = infra.ha_logging(__name__)
 
@@ -14,6 +15,14 @@ class NodeDisruptor(BaseDisruptor):
         self.sync = sync
         self.finish_execution = finish_execution
         infra.display_on_terminal(self, "Entering  Node Disruption plugin")
+
+        table_name = "Node Disruption"
+        infra.create_report_table(self, table_name)
+        infra.add_table_headers(self, table_name,
+                                ["Node", "Status of Disruption"])
+
+        infra.display_on_terminal(self, "Entering  Process Disruption plugin")
+
 
         input_args_dict = self.get_input_arguments()
         node_name = input_args_dict.keys()[0]
@@ -67,6 +76,10 @@ class NodeDisruptor(BaseDisruptor):
                 infra.display_on_terminal(self, "Will sleep for interval ",
                                           str(ha_interval))
                 #time.sleep(ha_interval)
+                infra.add_table_rows(self, table_name, [[node,
+                                                         HAConstants.OKGREEN +
+                                                         'PASS' +
+                                                         HAConstants.ENDC]])
 
         # bring it back to stable state
         infra.display_on_terminal(self, "Waiting for the node to become stable")
@@ -75,6 +88,9 @@ class NodeDisruptor(BaseDisruptor):
                                       "color=green")
 
         infra.display_on_terminal(self, "Finishing Node Disruption")
+
+    def set_expected_failures(self):
+        pass
 
     def process_disruption(self, sync=None, finish_execution=None):
         pass

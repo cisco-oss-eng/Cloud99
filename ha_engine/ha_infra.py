@@ -1,4 +1,4 @@
-import logging
+ha_engine/ha_executor.py import logging
 import sys
 from prettytable import PrettyTable
 import pprint
@@ -9,6 +9,10 @@ import time
 import re
 import ha_parser
 import os
+import utils.utils as utils
+from ha_constants import HAConstants
+from multiprocessing import Value
+
 from fpdb import  ForkedPdb as fdb
 import paramiko
 
@@ -47,8 +51,19 @@ def stringc(text, color):
 
 
 
-ha_infra_report_tables = {}
+ha_infra_report_tables = collections.OrderedDict({'Disruptors': {},
+                                                  'Monitors': {},
+                                                  'Runners': {}})
+
+
 ha_infra_historical_tables = {}
+expected_failures = []
+total_launched_process = 0
+start_run_time = None
+stop_run_time = None
+disruptions_count = None
+monitors_count  = None
+runners_count = None
 
 class NotifyNotImplemented(Exception):
     pass
@@ -73,25 +88,32 @@ def ha_logging(name):
 LOG = ha_logging(__name__)
 
 
-def create_report_table(self, tablename, historical=False):
+def create_report_table(self, tablename, user_table=False, historical=False):
 
     if self:
         plugin = get_plugin_name(self)
+        plugin_dir = get_plugin_dir_name(self).title()
+
     if tablename:
-        plugin_table = ha_infra_report_tables.get(plugin, None)
+        plugin_table = ha_infra_report_tables.get(plugin_dir).get(plugin, None)
         if historical:
             ha_infra_historical_tables[tablename] = True
-        if plugin_table is None:
-            ha_infra_report_tables[plugin] = [{tablename: []}]
+        if user_table:
+            ha_infra_report_tables[plugin_dir][plugin] =[tablename]
         else:
-            ha_infra_report_tables.get(plugin).append({tablename: []})
+            if plugin_table is None:
+                ha_infra_report_tables[plugin_dir][plugin] = [{tablename: []}]
+            else:
+                ha_infra_report_tables.get(plugin_dir).\
+                    get(plugin).append({tablename: []})
 
 
 def add_table_headers(self, tablename, headers):
     if self:
         plugin = get_plugin_name(self)
+        plugin_dir = get_plugin_dir_name(self).title()
 
-    plugin_tables = ha_infra_report_tables.get(plugin)
+    plugin_tables = ha_infra_report_tables.get(plugin_dir).get(plugin)
     if plugin_tables:
         for table in plugin_tables:
             if tablename in table:
@@ -104,48 +126,108 @@ def add_table_headers(self, tablename, headers):
 def add_table_rows(self, tablename, rows):
     if self:
         plugin = get_plugin_name(self)
-    plugin_tables = ha_infra_report_tables.get(plugin)
+        plugin_dir = get_plugin_dir_name(self).title()
+
+    plugin_tables = ha_infra_report_tables.get(plugin_dir).get(plugin)
     if plugin_tables:
         for table in plugin_tables:
             if tablename in table:
                 for row in rows:
                     table.get(tablename).append(row)
 
-
 def display_infra_report(show_historical=False):
-    ha_infra_repor = [ha_infra_report_tables]
-    for plugin_tables in ha_infra_repor:
-        for plugin_name in plugin_tables:
-            for plugin_table in plugin_tables[plugin_name]:
-                for tablename in plugin_table:
-                    display = True
-                    historic_table = ha_infra_historical_tables.get(tablename,
-                                                                    False)
-                    if historic_table and show_historical:
-                        display = True
-                    elif not historic_table and show_historical:
-                        display = False
-                    elif historic_table and not show_historical:
-                        display = False
-                    elif not historic_table and not show_historical:
-                        display = True
-                    if display:
-                        individual_table = plugin_table[tablename]
-                        headers = individual_table[0]
-                        print
-                        print "*"*15 + tablename + "*"*15
-                        print "-" * (30 + len(tablename))
-                        print
-                        report_table = PrettyTable(headers)
-                        for header in headers:
-                           report_table.align[header] = "l"
+    '''
+    global total_calls
+    if total_calls is None:
+        total_calls = 0
 
-                        report_table.padding_width = 3
-                        rows = individual_table[1:]
-                        for row in rows:
-                            report_table.add_row(row)
+    total_calls += 1
 
-                        print report_table
+    if total_calls == get_launched_process_count():
+    #if get_launched_process_count() == get_launched_process_count():
+    '''
+    if 1 == 1:
+        displayed = False
+        r,c = map(int, get_terminal_rc())
+        print
+        print
+        print "*" * int(c)
+        title = "HA Infra Report Summary"
+        print HAConstants.HEADER + title.center(int(c))
+        print ("Generated on " +
+               utils.get_timestamp(complete_timestamp=True)).center(c) +\
+              HAConstants.ENDC
+        print "Total Number of Launched Processes : ", \
+            get_launched_process_count()
+        print "Time Started :", start_run_time
+        print "Time Completed :", stop_run_time
+        print "*" * int(c)
+
+        for plugin_dir in ha_infra_report_tables:
+            print
+            tab_title = ("Result Reported by all " +
+                         plugin_dir.title()).title()
+            print HAConstants.HEADER + tab_title.center(c) + HAConstants.ENDC
+            print ("=" * len(tab_title)).center(c)
+            ha_infra_repor = [ha_infra_report_tables.get(plugin_dir.title())]
+            if len(ha_infra_report_tables.get(plugin_dir.title())) == 0:
+                print " -- No Results Reported  --".center(c)
+                print
+
+            for plugin_tables in ha_infra_repor:
+                for plugin_name in plugin_tables:
+                    pname = ("Plugin Name : " + plugin_name).title()
+                    print pname
+                    print "=" * len(pname)
+                    table_count = 0
+                    for plugin_table in plugin_tables[plugin_name]:
+                        if plugin_name == "rally" and not displayed:
+                                print plugin_table
+                                displayed = True
+                                break
+                        for tablename in plugin_table:
+                            table_count += 1
+                            display = True
+                            historic_table = ha_infra_historical_tables.\
+                                get(tablename, False)
+                            if historic_table and show_historical:
+                                display = True
+                            elif not historic_table and show_historical:
+                                display = False
+                            elif historic_table and not show_historical:
+                                display = False
+                            elif not historic_table and not show_historical:
+                                display = True
+                            if display:
+                                individual_table = plugin_table[tablename]
+                                headers = individual_table[0]
+                                print
+                                t_title = "Table : " + str(table_count) \
+                                          + "   " + tablename
+                                print t_title
+                                print "-" * len(t_title)
+                                report_table = PrettyTable(headers)
+                                for header in headers:
+                                   report_table.align[header] = "l"
+
+                                report_table.padding_width = 3
+                                rows = individual_table[1:]
+                                for row in rows:
+                                    report_table.add_row(row)
+
+                                print str(report_table).center(c)
+            print "-" * c
+        print "*" * c
+    else:
+        LOG.info("Received request to display table")
+
+
+def set_expected_failures(failure_list):
+    expected_failures.appen(failure_list)
+
+
+def get_expected_failures():
+    return expected_failures
 
 
 def display_report(module, steps=None):
@@ -187,9 +269,11 @@ def ha_exit(num):
     if num == 0:
         sys.exit(num)
 
+
 def wait_for_notification(sync):
     if sync:
         sync.wait()
+
 
 def dump_on_console(info, title):
     print "---- " + title + " ---- "
@@ -201,6 +285,7 @@ def dump_on_console(info, title):
 
     print "-------------------------"
 
+
 def pretty(d, indent=0):
     for key, value in d.iteritems():
           print '\t' * indent + str(key)
@@ -209,8 +294,10 @@ def pretty(d, indent=0):
           else:
              print '\t' * (indent+1) + str(value)
 
+
 def get_subscribers_list():
     print "SUBSCRIBERS LIST"
+
 
 def add_subscribers_for_module(subscriber_name, info):
     publishers = info.get('publishers', None)
@@ -265,15 +352,17 @@ def execute_the_command(command, pattern=None):
 
     return stdout
 
+
 def set_execution_completed(finish_execution):
     if finish_execution:
         finish_execution.set()
 
     return True
 
+
 def is_execution_completed(finish_execution):
     if finish_execution:
-        return finish_execution.is_set()
+        return finish_execution.isSet()
 
 
 def ssh_and_execute_command(ip, username, password, command, timeout=10,
@@ -330,9 +419,16 @@ def infra_assert(evaluate, assert_message):
 
     return
 
+
 def get_plugin_name(self):
     if self:
-        return  str(self).split('plugins.')[1].split('.')[0]
+        return str(self).split('plugins.')[1].split('.')[0]
+
+
+def get_plugin_dir_name(self):
+    if self:
+        return str(self).split('.')[0][1:]
+
 
 def get_my_pipe_path(self):
 
@@ -376,12 +472,14 @@ def display_on_terminal(self, *kwargs):
         output = get_plugin_name(self) + " :: " + data
         p.write(output)
 
+
 def get_openstack_config():
     """
     Method to get the complete openstack config
     :return: dict
     """
     return ha_parser.HAParser().openstack_config
+
 
 def follow(thefile):
     thefile.seek(0, 2)
@@ -392,6 +490,18 @@ def follow(thefile):
             continue
         yield line
 
+
+def set_launched_process_count(count):
+    total_launched_process = count
+
+
+def get_launched_process_count():
+    return total_launched_process
+
+
+def get_terminal_rc():
+    rows, columns = os.popen('stty size', 'r').read().split()
+    return rows, columns
 
 @singleton
 class HAinfra(object):

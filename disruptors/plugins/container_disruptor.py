@@ -1,5 +1,6 @@
 from disruptors.baseDisruptor import BaseDisruptor
 import ha_engine.ha_infra as infra
+from ha_constants import  HAConstants
 import time
 
 LOG = infra.ha_logging(__name__)
@@ -17,6 +18,11 @@ class ContainerDisruptor(BaseDisruptor):
         self.finish_execution = finish_execution
         infra.display_on_terminal(self, "Entering  Container Disruption plugin")
 
+        table_name = "Container Disruption"
+        infra.create_report_table(self, table_name)
+        infra.add_table_headers(self, table_name,
+                                ["Host", "Container Process",
+                                 "Status of Disruption"])
         input_args_dict = self.get_input_arguments()
         node_name = input_args_dict.keys()[0]
         input_args = input_args_dict.get(node_name, None)
@@ -69,6 +75,11 @@ class ContainerDisruptor(BaseDisruptor):
                                                             password,
                                                          container_start_command)
                 time.sleep(ha_interval)
+                infra.add_table_rows(self, table_name, [[ip,
+                                                         container_name,
+                                                         HAConstants.OKGREEN +
+                                                         'PASS' +
+                                                         HAConstants.ENDC]])
 
         # bring it back to stable state
         infra.display_on_terminal(self, "Bringing the container to stable state")
@@ -77,6 +88,9 @@ class ContainerDisruptor(BaseDisruptor):
                                                          container_start_command)
 
         infra.display_on_terminal(self, "Finishing Container Disruption")
+
+    def set_expected_failures(self):
+        pass
 
     def node_disruption(self, sync=None, finish_execution=None):
         pass

@@ -1,4 +1,4 @@
-from runners.baseRunner import BaseRunner
+monitors/plugins/openrc from runners.baseRunner import BaseRunner
 import ha_engine.ha_infra as infra
 import time
 import subprocess
@@ -50,15 +50,19 @@ class RallyRunner(BaseRunner):
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE
                                     )
+        rally_ouput_table = ""
         line = ''
         while not(line == '' and proc.poll() is not None):
             line = proc.stdout.readline()
             infra.display_on_terminal(self, line)
-            print line
+            rally_ouput_table += line
+            #print line
 
         # Let the infra know to complete
         infra.display_on_terminal(self, "Rally finished executing.....")
         infra.set_execution_completed(finish_execution)
+        infra.create_report_table(self, rally_ouput_table, user_table=True)
+        #infra.display_infra_report()
 
     def setup(self):
        infra.display_on_terminal(self,"Setting up the runner")

@@ -1,4 +1,5 @@
 from disruptors.baseDisruptor import BaseDisruptor
+from ha_constants import HAConstants
 import ha_engine.ha_infra as infra
 import time
 
@@ -11,10 +12,17 @@ class ProcessDisruptor(BaseDisruptor):
     ha_report = []
     sync = None
     finish_execution = None
+    expected_failures = []
 
     def process_disruption(self, sync=None, finish_execution=None):
         self.sync = sync
         self.finish_execution = finish_execution
+
+        table_name = "Process Disruption"
+        infra.create_report_table(self, table_name)
+        infra.add_table_headers(self, table_name,
+                                ["Host", "Process", "Status of Disruption"])
+
         infra.display_on_terminal(self, "Entering  Process Disruption plugin")
 
         input_args_dict = self.get_input_arguments()
@@ -36,7 +44,9 @@ class ProcessDisruptor(BaseDisruptor):
             if 'controller' in host_config[node].get('role', None):
                 infra.display_on_terminal(self, node, " will be disrupted ")
                 nodes_to_be_disrupted.append(node)
+                self.expected_failures.append(node + "::" + process_name)
 
+        self.set_expected_failures(self.expected_failures)
         rhel_stop_command = "systemctl stop " + process_name
         rhel_start_command = "systemctl start " + process_name
 
@@ -68,6 +78,10 @@ class ProcessDisruptor(BaseDisruptor):
                                                             password,
                                                          rhel_start_command)
                 time.sleep(ha_interval)
+                infra.add_table_rows(self, table_name,
+                                     [[node, process_name,
+                                       HAConstants.OKGREEN +
+                                       'PASS' + HAConstants.ENDC]])
 
         # bring it back to stable state
         infra.display_on_terminal(self, "Bringing the process  to stable state")
@@ -76,6 +90,9 @@ class ProcessDisruptor(BaseDisruptor):
                                                          rhel_start_command)
 
         infra.display_on_terminal(self, "Finishing Process Disruption")
+
+    def set_expected_failures(self, expected_failures):
+        self.expected_failures = expected_failures
 
     def node_disruption(self, sync=None, finish_execution=None):
         pass

@@ -10,6 +10,7 @@ import openstack_api.cinder_api
 import openstack_api.keystone_api
 import collections
 import os
+from ha_constants import HAConstants
 
 LOG = infra.ha_logging(__name__)
 
@@ -54,10 +55,10 @@ class HealthAPI(BaseMonitor):
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
 
-        self.add_to_graph_file("starttime##"+utils.utils.get_monitor_timestamp
+        self.add_to_graph_file("starttime##"+utils.utils.get_timestamp
         (complete_timestamp=True))
         self.health_check_start()
-        self.add_to_graph_file("endtime##"+utils.utils.get_monitor_timestamp
+        self.add_to_graph_file("endtime##"+utils.utils.get_timestamp
         (complete_timestamp=True))
         infra.display_on_terminal(self, "Finished Monitoring")
 
@@ -70,7 +71,8 @@ class HealthAPI(BaseMonitor):
                                      "Agent Downtime")
 
         # Display the final report
-        infra.display_infra_report()
+        tables_list = ['Endpoints Downtime', 'Agent Downtime']
+        #infra.display_infra_report()
 
     def display_msg_on_term(self, msg, status):
         '''
@@ -85,8 +87,6 @@ class HealthAPI(BaseMonitor):
         else:
             infra.display_on_terminal(self, msg, "color=red")
 
-
-
     def health_check_start(self):
         creds = self.cred.get_credentials()
         creds_nova = self.cred.get_nova_credentials_v2()
@@ -96,11 +96,13 @@ class HealthAPI(BaseMonitor):
         glance_instance = \
             openstack_api.glance_api.GlanceHealth(keystone_instance)
         cinder_instance = openstack_api.cinder_api.CinderHealth(creds_nova)
+
+        #for i in range(2):
         while infra.is_execution_completed(self.finish_execution) is False:
             ep_results = {}
             svc_results = []
-            self.ts, self.cts = utils.utils.get_monitor_timestamp(), \
-                                   utils.utils.get_monitor_timestamp(
+            self.ts, self.cts = utils.utils.get_timestamp(), \
+                                   utils.utils.get_timestamp(
                                        complete_timestamp=True)
 
             ep_results['timestamp'] = self.ts
@@ -119,8 +121,6 @@ class HealthAPI(BaseMonitor):
             self.endpoint_results.append(ep_results)
 
             self.service_results.append(svc_results)
-
-        #self.health_display_report()
 
     def health_display_report(self):
         infra.create_report_table(self, self.table_endpoint_check)
@@ -144,8 +144,7 @@ class HealthAPI(BaseMonitor):
                                      service['host'], service['Status'],
                                      service['State']]])
         """
-        #infra.display_infra_report()
-    
+
     def nova_endpoint_check(self, nova_instance, results, detail=False):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
@@ -249,7 +248,6 @@ class HealthAPI(BaseMonitor):
                 self.display_msg_on_term("Neutron Endpoint Check" , "FAIL")
                 results['neutron'] = 'FAIL'
 
-    
     def keystone_endpoint_check(self, keystone_instance, results):
         status, message, service_list = \
             keystone_instance.keystone_service_list()
@@ -345,9 +343,12 @@ class HealthAPI(BaseMonitor):
                         prev = cur
 
                     if not downtime_range:
-                        all_down_range = ":) "
+                        all_down_range = HAConstants.OKGREEN + ":)" + \
+                                         HAConstants.ENDC
                     else:
-                        all_down_range = ", ".join(downtime_range)
+                        all_down_range = HAConstants.WARNING +\
+                                         (", ".join(downtime_range)) +\
+                                         HAConstants.ENDC
 
                     host_dict = {agent: all_down_range}
                     if host_agent_status_dict.get(host, None) is None:
@@ -376,8 +377,6 @@ class HealthAPI(BaseMonitor):
                 agents[colpos] = na_status
 
             infra.add_table_rows(self, table_name, [row + agents])
-
-
 
     def update_downtime_dict(self, downtime_dict, agent_name,
                              host_name, status):
@@ -409,7 +408,6 @@ class HealthAPI(BaseMonitor):
         else:
             with open(self.nagios_graph_file, "a+") as f:
                 f.write(msg)
-
 
 
 """ 

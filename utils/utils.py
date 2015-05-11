@@ -92,7 +92,7 @@ def get_absolute_path_for_file(path, file_name, splitdir=None):
 
     return abs_file_path
 
-def get_monitor_timestamp(complete_timestamp=False):
+def get_timestamp(complete_timestamp=False):
     '''
     Return the timestamp that will be added to the
     results.
