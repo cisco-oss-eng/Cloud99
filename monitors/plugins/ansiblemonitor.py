@@ -12,6 +12,8 @@ from monitors.baseMonitor import BaseMonitor
 import ha_engine.ha_infra as infra
 import utils.utils as utils
 
+LOG = None
+
 SERVICE_LIST = [
     {'service': 'neutron-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
@@ -158,8 +160,8 @@ class AnsibleRunner(object):
         if host_list is None or remote_user is None:
             print "Host list [%s], remote user [%s] are required" % \
                   (host_list, remote_user)
-            self.log.error("Host list [%s], remote_user [%s] are required",
-                           host_list, remote_user)
+            LOG.error("Host list [%s], remote_user [%s] are required",
+                      host_list, remote_user)
             return (None, None)
 
         return (host_list, remote_user)
@@ -176,7 +178,8 @@ class AnsibleRunner(object):
         # all the hosts was ok.
         ###################################################
         if results['dark']:
-            print "Host connectivity issues on %s " % results['dark'].keys()
+            LOG.warning("Host connectivity issues on %s ",
+                        results['dark'].keys())
             failed_hosts.append(results['dark'].keys())
             results['status'] = 'FAIL'
 
@@ -186,8 +189,8 @@ class AnsibleRunner(object):
         for node in results['contacted'].keys():
             if 'failed' in results['contacted'][node]:
                 if results['contacted'][node]['failed'] is True:
-                    print "Operation \'failed\' [%s]" % node
-                    failed_hosts.append(node)
+                    LOG.warning("Operation \'failed\' [%s]",
+                                node, failed_hosts.append(node))
                     results['status'] = 'FAIL'
 
         #################################################
@@ -196,8 +199,8 @@ class AnsibleRunner(object):
         for node in results['contacted'].keys():
             rc = results['contacted'][node].get('rc', None)
             if rc is not None and rc != 0:
-                print "Operation \'return code\' %s on host %s" % \
-                    (results['contacted'][node]['rc'], node)
+                LOG.warning("Operation \'return code\' %s on host %s",
+                            results['contacted'][node]['rc'], node)
                 failed_hosts.append(node)
                 results['status'] = 'FAIL'
 
@@ -215,8 +218,9 @@ class AnsibleRunner(object):
             for node in results['contacted'].keys():
                 if key in results['contacted'][node].keys():
                     if results['contacted'][node][key] != value:
-                        print "Check %s failed. Expected: [%s] found: [%s]" % \
-                            (check, value, results['contacted'][node][key])
+                        LOG.warning("Check %s failed. Expect: [%s] found: [%s]",
+                                    check,
+                                    value, results['contacted'][node][key])
                         failed_hosts.append(node)
                         results['status'] = 'FAIL'
 
@@ -590,7 +594,7 @@ class AnsibleMonitor(BaseMonitor):
         #rescount = len(self.ansiresults)
         test_starttime = self.ansiresults[0][0]['ts']
         # Capture end time.
-        test_endtime = utils.get_monitor_timestamp()
+        test_endtime = utils.get_timestamp()
 
         with open(ansible_graph_file, "w") as f:
             data = "starttime##%s\n" % test_starttime
@@ -620,10 +624,16 @@ class AnsibleMonitor(BaseMonitor):
         # Parse user data and Initialize.
         self.finish_execution = finish_execution
         data = self.get_input_arguments()
-        print "User data: ", data
+        self.loglevel = data['ansible'].get("loglevel", "DEBUG")
         self.frequency = data['ansible'].get('frequency', 5)
         self.max_hist_size = data['ansible'].get('max_hist', 25)
         self.dockerized = data['ansible'].get('dockerized', False)
+
+        global LOG
+        LOG = infra.ha_logging(__name__, level=self.loglevel)
+        print "ANSIBLE LOG LEVEL: ", self.loglevel
+
+        LOG.debug("User data: %s", data)
 
         # Get MariaDB Username/pass
         self.mariadb_user = None
@@ -639,16 +649,16 @@ class AnsibleMonitor(BaseMonitor):
         self.ansiresults = collections.deque(maxlen=self.max_hist_size)
 
         inventory = ConfigHelper(host_file=setup_file)
-        print "parsed data: ", inventory.parsed_data
+        LOG.debug("parsed data: ", inventory.parsed_data)
 
         host_list = inventory.get_host_list()
         host_ip_list = inventory.get_host_ip_list()
         control_ip_list = inventory.get_host_ip_list(role='controller')
         compute_ip_list = inventory.get_host_ip_list(role='compute')
         remote_user = inventory.get_host_username(host_list[0])
-        print "Inventory: [all: %s], [control: %s] [compute: %s]" % \
-            (host_ip_list, control_ip_list, compute_ip_list)
-        print "Remote user: ", remote_user
+        LOG.debug("Inventory: [all: %s], [control: %s] [compute: %s]",
+                  host_ip_list, control_ip_list, compute_ip_list)
+        LOG.debug("Remote user: ", remote_user)
         self.ansirunner = AnsibleRunner()
 
         if sync:
@@ -661,7 +671,7 @@ class AnsibleMonitor(BaseMonitor):
             # Ansible Monitoring Loop.
             ####################################################
             ts_results = []
-            ts = utils.get_monitor_timestamp()
+            ts = utils.get_timestamp()
             ts_results.append({'name': 'ts', 'ts': ts})
             msg = "=" * 50 + "\n" + "Timestamp: " + ts
             infra.display_on_terminal(self, msg)

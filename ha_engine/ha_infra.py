@@ -68,7 +68,15 @@ runners_count = None
 class NotifyNotImplemented(Exception):
     pass
 
-def ha_logging(name):
+logger_level = {
+    "DEBUG"   : logging.DEBUG,
+    "INFO"    : logging.INFO,
+    "WARNING" : logging.WARNING,
+    "ERROR"   : logging.ERROR,
+    "CRITICAL": logging.CRITICAL
+}
+
+def ha_logging(name, level="DEBUG"):
     '''
     Initializing logger
     '''
@@ -77,7 +85,7 @@ def ha_logging(name):
 
     LOG = logging.getLogger(name)
     LOG.setLevel(logging.INFO)
-    LOG.setLevel(logging.DEBUG)
+    LOG.setLevel(logger_level[level])
     logHandler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s - %(name)s - '
                                   '%(levelname)s - %(message)s')
