@@ -1,4 +1,4 @@
-monitors/plugins/openrc from runners.baseRunner import BaseRunner
+from runners.baseRunner import BaseRunner
 import ha_engine.ha_infra as infra
 import time
 import subprocess

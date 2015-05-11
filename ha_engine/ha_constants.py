@@ -1,4 +1,4 @@
- class HAConstants:
+class HAConstants:
     check_interval = 5
     timeout = 600
     HEADER = '\033[94m'
