@@ -142,8 +142,11 @@ if __name__ == "__main__":
 	
 	elif inputs[0] == 'file':
 		# print inputs[0]
-		f = open(inputs[1],'r+')
-		args = f.read().splitlines()
+		try:
+			f = open(inputs[1],'r+')
+		except IOError as e:
+			print "Error while opening the file %s...%s" % (e)
+			args = f.read().splitlines()
 
 	ip_list = []
 	if os.path.isfile('nagios_host.cfg'):
