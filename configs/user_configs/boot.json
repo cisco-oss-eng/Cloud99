@@ -1,0 +1,44 @@
+{
+    "NovaServers.boot_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "m1.tiny"
+                },
+                "image": {
+                    "name": "cirros"
+                },
+                "auto_assign_nic" : true,
+            },
+            "runner": {
+                "type": "constant",
+                "times": 60,
+                "concurrency": 5 
+            },
+            "context": {
+                "users": {
+                    "tenants": 1,
+                    "users_per_tenant": 1 
+                },
+                 "quotas" : {
+                    "nova": {
+                         "instances" : -1,
+                         "cores" : -1,
+                         "ram" : -1,
+                         "metadata_items" : -1
+                    },
+                    "neutron" : {
+                        "network" : -1,
+                        "subnet" : -1,
+                        "port" : -1,
+                        "router" : -1,
+                        "floatingip" : -1,
+                        "security_group" : -1,
+                        "security_group_rule": -1
+                    }
+                }
+            }
+
+        }
+    ]
+}
