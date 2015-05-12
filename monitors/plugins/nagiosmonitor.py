@@ -227,7 +227,7 @@ class NagiosMonitor(BaseMonitor):
             serviceList = reportDict.get(dkey)
             for tup in serviceList:
                 lst = dkey.split("##")
-                print "%s,%s,%s,%s,%s" % (lst[0],lst[1],time.ctime(int(tup[0])),tup[1],tup[2])
+                #print "%s,%s,%s,%s,%s" % (lst[0],lst[1],time.ctime(int(tup[0])),tup[1],tup[2])
                 d = datetime.datetime.fromtimestamp(int(tup[0])).strftime('%Y-%m-%d %H:%M:%S')
                 f.write("%s,%s,%s,%s,%s\n" % (lst[0],lst[1],d,tup[1],tup[2]))
         f.write("endtime##"+etime+"\n")
@@ -350,7 +350,7 @@ class NagiosMonitor(BaseMonitor):
             ptime = summaryDict[pkey] 
             seconds = endSeconds - prevTup[0]
             summaryDict[pkey] = ptime + seconds
-        print summaryDict             
+        #print summaryDict             
     
     def health_display_report(self):
         infra.create_report_table(self, "Nagios Montitor Summary Repory")
