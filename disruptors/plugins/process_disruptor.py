@@ -22,7 +22,7 @@ class ProcessDisruptor(BaseDisruptor):
         table_name = "Process Disruption"
         infra.create_report_table(self, table_name)
         infra.add_table_headers(self, table_name,
-                                ["Host", "Process", "Status of Disruption"])
+                                ["Host", "Process", "TimeStamp", "Status of Disruption"])
 
         infra.display_on_terminal(self, "Entering  Process Disruption plugin")
 

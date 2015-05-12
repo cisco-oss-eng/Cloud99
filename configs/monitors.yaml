@@ -21,7 +21,7 @@ monitors:
             pid:
     nagiosmonitor:
         nagios:
-            type: node
+            type: openstackvm 
     nagioscfgset:
         nagioscfg:
     ansiblemonitor:

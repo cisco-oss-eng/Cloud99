@@ -589,12 +589,12 @@ class AnsibleMonitor(BaseMonitor):
                             per_proc_result[procname]['reslist'].append(results)
 
         # Now copy the data to a file
-        ansible_graph_file = "/tmp/ansible_graph.txt"
+        ansible_graph_file = "/tmp/ha_infra/ansible_graph.txt"
 
         #rescount = len(self.ansiresults)
         test_starttime = self.ansiresults[0][0]['ts']
         # Capture end time.
-        test_endtime = utils.get_timestamp()
+        test_endtime = utils.get_timestamp(complete_timestamp=True)
 
         with open(ansible_graph_file, "w") as f:
             data = "starttime##%s\n" % test_starttime
@@ -671,7 +671,7 @@ class AnsibleMonitor(BaseMonitor):
             # Ansible Monitoring Loop.
             ####################################################
             ts_results = []
-            ts = utils.get_timestamp()
+            ts = utils.get_timestamp(complete_timestamp=True)
             ts_results.append({'name': 'ts', 'ts': ts})
             msg = "=" * 50 + "\n" + "Timestamp: " + ts
             infra.display_on_terminal(self, msg)
