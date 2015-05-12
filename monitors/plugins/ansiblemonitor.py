@@ -737,11 +737,7 @@ class AnsibleMonitor(BaseMonitor):
             infra.display_on_terminal(self, "Waiting for Runner Notification")
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
-        cnt = 0
         while infra.is_execution_completed(self.finish_execution) is False:
-            if cnt > 4:
-                break
-            cnt += 1
             ####################################################
             # Ansible Monitoring Loop.
             ####################################################
