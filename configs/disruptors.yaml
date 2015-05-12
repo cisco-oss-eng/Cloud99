@@ -41,6 +41,9 @@ disruptors:
        keystone_container:
            container_name: keystone_v1
            role: controller
+       neutron_api_container:
+           container_name : neutron_server_v1
+           role : controller
 
     process_disruptor:
        nova_api:

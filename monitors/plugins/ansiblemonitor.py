@@ -20,7 +20,7 @@ SERVICE_LIST = [
     {'service': 'rabbitmq-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
     {'service': 'glance-registry', 'role': 'controller'},
-    {'service': 'nova-novncproxy', 'role': 'controller'},
+#    {'service': 'nova-novncproxy', 'role': 'controller'},
     {'service': 'nova-conductor', 'role': 'controller'},
     {'service': 'nova-scheduler', 'role': 'controller'},
     {'service': 'dhcp-agent', 'role': 'controller'},

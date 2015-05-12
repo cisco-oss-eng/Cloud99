@@ -16,6 +16,6 @@ executors:
         #node_disruption : [compute_node]
         execute: [boot_test]
         start: [openstack_api, ansible, nagios]
-        process_disruption: [neutron_api]
-        #container_disruption: [keystone_container]
+        #process_disruption: [neutron_api]
+        container_disruption: [neutron_api_container]
     -
