@@ -16,8 +16,6 @@ LOG = None
 
 SERVICE_LIST = [
     {'service': 'neutron-server', 'role': 'controller'},
-    {'service': 'glance-api', 'role': 'controller'},
-    {'service': 'glance-registry', 'role': 'controller'},
     {'service': 'nova-api', 'role': 'controller'},
     {'service': 'rabbitmq-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
@@ -244,7 +242,7 @@ class AnsibleRunner(object):
             return None
 
         if module is None:
-            print "ANSIBLE Perform operation: No module specified"
+            LOG.warning("ANSIBLE Perform operation: No module specified")
             return None
 
         runner = ansible.runner.Runner(
@@ -261,44 +259,10 @@ class AnsibleRunner(object):
 
         results, failed_hosts = self.validate_results(results)
         if results['status'] != 'PASS':
-            print "ANSIBLE: [%s] operation failed [%s] [hosts: %s]" % \
-                (module, complex_args, failed_hosts)
+            LOG.warning("ANSIBLE: [%s] operation failed [%s] [hosts: %s]",
+                        module, complex_args, failed_hosts)
 
         return results, failed_hosts
-
-    def ansible_execute_command(self, host_list=None, remote_user=None,
-                                args=None, complex_args=None, forks=2):
-        '''
-        Execute a command on remote host using Ansible 'command'
-        module
-        '''
-
-        (host_list, remote_user) = \
-            self.validate_host_parameters(host_list, remote_user)
-        if (host_list, remote_user) is (None, None):
-            return None
-
-        if args is None or len(args) == 0:
-            print "Invalid command [%s]" % args
-            return None
-
-        cmd = " ".join(args)
-
-        runner = ansible.runner.Runner(
-            module_name="command",
-            host_list=host_list,
-            remote_user=remote_user,
-            module_args=cmd,
-            complex_args=complex_args,
-            forks=forks)
-
-        results = runner.run()
-
-        results = self.validate_results(results, checks=[{'stderr': ''}])
-        if results['status'] != 'PASS':
-            print "Execute command %s failed" % cmd
-
-        return results
 
 
 class AnsibleMonitor(BaseMonitor):
@@ -342,11 +306,13 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "ssh_ping_check"
+        ansi_result['host_list'] = host_list
 
         ansi_result['ansi_result'], failed_hosts = self.ansirunner.\
             ansible_perform_operation(host_list=host_list,
                                       remote_user=remote_user,
                                       module="ping")
+        ansi_result['failed_hosts'] = failed_hosts
 
         msg = "SSH & Ping Check:"
         self.display_msg_on_term(msg,
@@ -363,6 +329,7 @@ class AnsibleMonitor(BaseMonitor):
         ansi_result = {}
         ansi_result['name'] = "process_check"
         ansi_result['process'] = process_name
+        ansi_result['host_list'] = host_list
 
         if self.dockerized is True:
             args = "ps -ef | grep %s | grep -v grep" % process_name
@@ -374,6 +341,7 @@ class AnsibleMonitor(BaseMonitor):
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
+        ansi_result['failed_hosts'] = failed_hosts
 
         msg = "Process Check [%s]" % process_name
         self.display_msg_on_term(msg,
@@ -390,6 +358,7 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "rabbitmq_check"
+        ansi_result['host_list'] = host_list
         rabbit_container = "rabbitmq_v1"
 
         if self.dockerized is True:
@@ -402,6 +371,8 @@ class AnsibleMonitor(BaseMonitor):
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
+        ansi_result['failed_hosts'] = failed_hosts
+
         msg = "RabbitMQ Check"
         self.display_msg_on_term(msg,
                                  ansi_result['ansi_result']['status'],
@@ -417,6 +388,8 @@ class AnsibleMonitor(BaseMonitor):
         '''
         ansi_result = {}
         ansi_result['name'] = "mariadb_check"
+        ansi_result['host_list'] = host_list
+
         if self.dockerized is True:
             dock = "docker exec mariadb_v1"
             args = r"%s mysql -u %s -p%s -e 'show databases;'" %  \
@@ -430,6 +403,7 @@ class AnsibleMonitor(BaseMonitor):
                                       remote_user=remote_user,
                                       module="shell",
                                       module_args=args)
+        ansi_result['failed_hosts'] = failed_hosts
 
         msg = "MariaDB Check"
         self.display_msg_on_term(msg,
@@ -438,6 +412,20 @@ class AnsibleMonitor(BaseMonitor):
 
         return ansi_result
 
+    def _get_timestring(self, result, failed_only=False):
+        '''
+        Generate a time string from the list of results.
+        '''
+        timestr = ""
+        for res in result:
+            if failed_only and \
+                    res['ansi_result']['status'] == "PASS":
+                continue
+            starttime = res['ts_start']
+            endtime = res['ts_end']
+            timestr = timestr + starttime + " - " + endtime + ","
+        return timestr
+
     def display_ansible_summary_report(self,
                                        hist_cnt=5):
         '''
@@ -445,36 +433,54 @@ class AnsibleMonitor(BaseMonitor):
         '''
         infra.create_report_table(self, "Ansible Monitoring Summary")
         infra.add_table_headers(self, "Ansible Monitoring Summary",
-                                ["Timestamp",
+                                ["Host",
                                  "SSH & Ping",
                                  "RabbitMQ",
                                  "MariaDB",
                                  "Process"])
+
+        condensed_results = self.build_condensed_results()
+        host_list = self.inventory.get_host_ip_list()
+
         rows = []
-        for ts_results in self.ansiresults:
-            singlerow = []
+        for host in host_list:
+            single_row = []
+            single_row.append(host)
+            for result in condensed_results.keys():
+                if result == "ssh_ping_check":
+                    timestr = self.\
+                        _get_timestring(condensed_results[result]['reslist'])
+                    single_row.append(timestr)
+            for result in condensed_results.keys():
+                if result == "rabbitmq_check":
+                    timestr = self.\
+                        _get_timestring(condensed_results[result]['reslist'])
+                    single_row.append(timestr)
+            for result in condensed_results.keys():
+                if result == "mariadb_check":
+                    timestr = self.\
+                        _get_timestring(condensed_results[result]['reslist'])
+                    single_row.append(timestr)
+
             process_check_status = 'PASS'
-            for results in ts_results:
-                #print "Result obj: ", results
-                name = results.get('name', None)
-                if name is None:
-                    continue
-
-                if name == "ts":
-                    ts = results.get('ts', None)
-                    singlerow.append(ts)
-                if name == "process_check":
-                    if results['ansi_result']['status'] == 'FAIL':
+            failed_process_list = []
+            for result in condensed_results.keys():
+                check_name = condensed_results[result]['reslist'][0]['name']
+                if check_name == "process_check":
+                    # Check if all processes are ok.
+                    if len(condensed_results[result]['reslist']) > 1:
                         process_check_status = 'FAIL'
-                if name == "ssh_ping_check":
-                    singlerow.append(results['ansi_result']['status'])
-                if name == "rabbitmq_check":
-                    singlerow.append(results['ansi_result']['status'])
-                if name == "mariadb_check":
-                    singlerow.append(results['ansi_result']['status'])
-            singlerow.append(process_check_status)
+                        failed_process_list.append(condensed_results[result])
+                    else:
+                        timestr = self._get_timestring(
+                            condensed_results[result]['reslist'])
 
-            rows.append(singlerow)
+            if process_check_status == 'PASS':
+                single_row.append(timestr)
+            else:
+                single_row.append("FAIL")
+
+            rows.append(single_row)
 
         infra.add_table_rows(self,
                              "Ansible Monitoring Summary",
@@ -526,22 +532,88 @@ class AnsibleMonitor(BaseMonitor):
         infra.add_table_headers(self, "Ansible Failed Processes",
                                 hdr_columns)
 
-        rows = []
-        for cnt in range(0, len(self.ansiresults)):
-            singlerow = []
-            ts_done = False
-            for fproc in process_set:
-                proc_res = per_proc_result[fproc]
-                if not ts_done:
-                    singlerow.append(proc_res['reslist'][cnt]['ts'])
-                    ts_done = True
 
-                singlerow.\
-                    append(proc_res['reslist'][cnt]['ansi_result']['status'])
-            rows.append(singlerow)
-        infra.add_table_rows(self,
-                             "Ansible Failed Processes", rows)
+        condensed_results = self.build_condensed_results()
+        host_list = self.inventory.get_host_ip_list()
+
+        rows = []
+        for host in host_list:
+            single_row = []
+            single_row.append(host)
+            for fproc in process_set:
+                for result in condensed_results.keys():
+                    if result == "ssh_ping_check":
+                        continue
+                    elif result == "rabbitmq_check":
+                        continue
+                    elif result == "mariadb_check":
+                        continue
+                    if fproc == result:
+                        res0 = condensed_results[result]['reslist'][0]
+                        host_list = res0['host_list']
+                        if host not in host_list:
+                            print "%s not in %s" % (result, host)
+                            single_row.append("NA")
+                            break
+                        timestr = self._get_timestring(
+                            condensed_results[result]['reslist'],
+                            failed_only=True)
+                        single_row.append(timestr)
+            rows.append(single_row)
+        infra.add_table_rows(self, "Ansible Failed Processes", rows)
         #infra.display_infra_report()
+
+    def build_condensed_results(self):
+        '''
+        Process the results data and generate
+        a condensed structure with status transitions.
+        '''
+        condensed_res = {}
+
+        ssh_result = {}
+        ssh_result['reslist'] = []
+
+        per_proc_result = {}
+        for service in SERVICE_LIST:
+            svcname = service['service']
+            per_proc_result[svcname] = {}
+            per_proc_result[svcname]['reslist'] = []
+
+        for ts_results in self.ansiresults:
+            ts = None
+            for results in ts_results:
+                name = results.get('name', None)
+                if name is None:
+                    continue
+                if name == "ts":
+                    ts = results.get('ts', None)
+                    continue
+
+                results['ts_start'] = ts
+                results['ts_end'] = None
+                if name == "process_check":
+                    name = results['process']
+                    check_name = condensed_res.get(name, None)
+                else:
+                    check_name = condensed_res.get(name, None)
+
+                if check_name is None:
+                    # If this is the first time we are adding the result.
+                    condensed_res[name] = {}
+                    condensed_res[name]['reslist'] = []
+                    condensed_res[name]['reslist'].append(results)
+                else:
+                    lastidx = len(condensed_res[name]['reslist']) - 1
+                    cur_res = condensed_res[name]['reslist'][lastidx]
+
+                    if results['ansi_result']['status'] == \
+                            cur_res['ansi_result']['status']:
+                        cur_res['ts_end'] = ts
+                    else:
+                        cur_res['ts_end'] = ts
+                        condensed_res[name]['reslist'].append(results)
+
+        return condensed_res
 
     def generate_graphs_output(self):
         '''
@@ -648,14 +720,14 @@ class AnsibleMonitor(BaseMonitor):
         setup_file = "../../configs/openstack_config.yaml"
         self.ansiresults = collections.deque(maxlen=self.max_hist_size)
 
-        inventory = ConfigHelper(host_file=setup_file)
-        LOG.debug("parsed data: ", inventory.parsed_data)
+        self.inventory = ConfigHelper(host_file=setup_file)
+        LOG.debug("parsed data: ", self.inventory.parsed_data)
 
-        host_list = inventory.get_host_list()
-        host_ip_list = inventory.get_host_ip_list()
-        control_ip_list = inventory.get_host_ip_list(role='controller')
-        compute_ip_list = inventory.get_host_ip_list(role='compute')
-        remote_user = inventory.get_host_username(host_list[0])
+        host_list = self.inventory.get_host_list()
+        host_ip_list = self.inventory.get_host_ip_list()
+        control_ip_list = self.inventory.get_host_ip_list(role='controller')
+        compute_ip_list = self.inventory.get_host_ip_list(role='compute')
+        remote_user = self.inventory.get_host_username(host_list[0])
         LOG.debug("Inventory: [all: %s], [control: %s] [compute: %s]",
                   host_ip_list, control_ip_list, compute_ip_list)
         LOG.debug("Remote user: ", remote_user)
@@ -665,8 +737,11 @@ class AnsibleMonitor(BaseMonitor):
             infra.display_on_terminal(self, "Waiting for Runner Notification")
             infra.wait_for_notification(sync)
             infra.display_on_terminal(self, "Received notification from Runner")
-
+        cnt = 0
         while infra.is_execution_completed(self.finish_execution) is False:
+            if cnt > 4:
+                break
+            cnt += 1
             ####################################################
             # Ansible Monitoring Loop.
             ####################################################
@@ -677,21 +752,21 @@ class AnsibleMonitor(BaseMonitor):
             infra.display_on_terminal(self, msg)
 
             # Ping and SSH Check.
-            host_ip_list = inventory.get_host_ip_list()
+            host_ip_list = self.inventory.get_host_ip_list()
             ansi_results = self.ansible_ssh_ping_check(host_ip_list,
                                                        remote_user)
             ts_results.append(ansi_results)
 
             # Process check.
             for service in SERVICE_LIST:
-                host_ip_list = inventory.get_host_ip_list(role=service['role'])
+                host_ip_list = self.inventory.get_host_ip_list(role=service['role'])
                 ansi_results = self.ansible_check_process(host_ip_list,
                                                           remote_user,
                                                           service['service'])
                 ts_results.append(ansi_results)
 
             # RabbitMQ Check.
-            host_ip_list = inventory.get_host_ip_list(role='controller')
+            host_ip_list = self.inventory.get_host_ip_list(role='controller')
             ansi_results = self.ansible_check_rabbitmq(host_ip_list,
                                                        remote_user)
             ts_results.append(ansi_results)
