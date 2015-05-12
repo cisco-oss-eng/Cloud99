@@ -437,7 +437,7 @@ class AnsibleMonitor(BaseMonitor):
                                  "SSH & Ping",
                                  "RabbitMQ",
                                  "MariaDB",
-                                 "Process"])
+                                 "Consolidated Process State"])
 
         condensed_results = self.build_condensed_results()
         host_list = self.inventory.get_host_ip_list()
@@ -448,18 +448,27 @@ class AnsibleMonitor(BaseMonitor):
             single_row.append(host)
             for result in condensed_results.keys():
                 if result == "ssh_ping_check":
-                    timestr = self.\
-                        _get_timestring(condensed_results[result]['reslist'])
+                    if len(condensed_results[result]['reslist']) == 1:
+                        timestr = ":-)"
+                    else:
+                        timestr = self._get_timestring(
+                            condensed_results[result]['reslist'])
                     single_row.append(timestr)
             for result in condensed_results.keys():
                 if result == "rabbitmq_check":
-                    timestr = self.\
-                        _get_timestring(condensed_results[result]['reslist'])
+                    if len(condensed_results[result]['reslist']) == 1:
+                        timestr = ":-)"
+                    else:
+                        timestr = self._get_timestring(
+                            condensed_results[result]['reslist'])
                     single_row.append(timestr)
             for result in condensed_results.keys():
                 if result == "mariadb_check":
-                    timestr = self.\
-                        _get_timestring(condensed_results[result]['reslist'])
+                    if len(condensed_results[result]['reslist']) == 1:
+                        timestr = ":-)"
+                    else:
+                        timestr = self._get_timestring(
+                            condensed_results[result]['reslist'])
                     single_row.append(timestr)
 
             process_check_status = 'PASS'
@@ -476,7 +485,7 @@ class AnsibleMonitor(BaseMonitor):
                             condensed_results[result]['reslist'])
 
             if process_check_status == 'PASS':
-                single_row.append(timestr)
+                single_row.append(":-)")
             else:
                 single_row.append("FAIL")
 
