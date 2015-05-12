@@ -128,9 +128,12 @@ class NagiosConfigGenUtil(object):
 	def writeToServiceFile(check_commands,host_name,sf):
 		for check_command in check_commands:
 			if check_command[2] == 't':
-				sf.write(nagios_service%('check_nrpe!'+check_command[0],host_name,host_name+"-"+check_command[0],check_command[1]))
+				sf.write(nagios_service%('check_nrpe!'+check_command[0],
+										 host_name,
+										 host_name+"-"+check_command[0],check_command[1]))
 			else:
-				sf.write(nagios_service%(check_command[0],host_name,host_name+"-"+check_command[0],check_command[1]))
+				sf.write(nagios_service%(check_command[0],host_name,
+										 host_name+"-"+check_command[0],check_command[1]))
 		
 if __name__ == "__main__":
 	

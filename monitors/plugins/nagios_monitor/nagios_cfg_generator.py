@@ -77,19 +77,23 @@ class NagiosConfigGen(object):
     
     def printHostList(self):
         for hostObj in self.openstack_host_list:
-            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),str(hostObj.isNagiosRunning()))
+            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),
+                                         hostObj.getUser(),str(hostObj.isNagiosRunning()))
         for hostObj in self.openstack_vm_list:
-            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),str(hostObj.isNagiosRunning()))
+            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),
+                                         hostObj.getUser(),str(hostObj.isNagiosRunning()))
 
     def generateNagiosHostConfig(self):
         for hostObj in self.openstack_host_list:
-            NagiosConfigGenUtil.generate_nagios_host_config(hostObj.getIp(),hostObj.getHost(),hostObj.getRole())
+            NagiosConfigGenUtil.generate_nagios_host_config(hostObj.getIp(),
+                                                            hostObj.getHost(),hostObj.getRole())
                 #NagiosConfigGenerator.generate_nagios_host_service(hostObj.getIp(),hostObj.getHost()) 
 
     def generateNagiosAppVmConfig(self):
         for hostObj in self.openstack_vm_list:
             #if hostObj.isNagiosRunning():
-            NagiosConfigGenUtil.generate_nagios_appvm_config(hostObj.getIp(),hostObj.getHost(),hostObj.getRole())
+            NagiosConfigGenUtil.generate_nagios_appvm_config(hostObj.getIp(),
+                                                             hostObj.getHost(),hostObj.getRole())
 
 if __name__ == '__main__':
     yhp = NagiosConfigGen()
