@@ -18,8 +18,8 @@ def index():
 @app.route('/ntimeline')
 def timeline():
     #print "Time line"
-    return render_template('timeline.html')
-    #return render_template('menu1.html')
+    #return render_template('timeline.html')
+    return render_template('menu1.html')
 
 @app.route('/narchive')
 def archive():
@@ -30,7 +30,8 @@ def archive():
 @app.route('/htimeline')
 def htimeline():
     #print "R Time line"
-    return render_template('htimeline.html')
+    #return render_template('htimeline.html')
+    return render_template('menu2.html')
 
 @app.route('/harchive')
 def harchive():
@@ -40,7 +41,8 @@ def harchive():
 @app.route('/anstimeline')
 def anstimeline():
     #print "R Time line"
-    return render_template('anstimeline.html')
+    #return render_template('anstimeline.html')
+    return render_template('menu3.html')
 
 @app.route('/ansarchive')
 def ansarchive():

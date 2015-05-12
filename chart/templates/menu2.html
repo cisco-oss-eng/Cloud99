@@ -1,0 +1,163 @@
+
+<script type="text/javascript">
+var gData = ''
+
+function getDataList() {
+    var url = "/htldata";
+    $.ajax({
+        type: 'GET',
+        url: url,
+        dataType: "text",
+        async: true,
+        success: function(responseText, textStatus, jqXHR) {
+            //console.log("============" + responseText)
+            drawChart(responseText)
+        },
+        error: function(responseText, textStatus, jqXHR) {
+            console.warn(url, responseText.status, responseText.statusText);
+        }
+    });
+    return gData
+}
+var archGData =''
+ function getArchDataList(){
+    var url = "/harchivedata";
+    $.ajax({
+      type: 'GET',
+      url: url,
+      dataType: "text",
+      async: true,
+      success: function(responseText, textStatus, jqXHR) {
+        console.log("============"+ responseText)
+                drawArchChart(responseText)
+      },
+      error: function(responseText, textStatus, jqXHR) {
+        console.warn(url, responseText.status, responseText.statusText);
+      }
+    });
+        return archGData
+}
+
+
+
+function drawChart(gData) {
+
+    //console.log("6666666666 " + gData)
+    var container = document.getElementById('timeline');
+    var chart = new google.visualization.Timeline(container);
+    var dataTable = new google.visualization.DataTable();
+    dataTable.addColumn({
+        type: 'string',
+        id: 'Room'
+    });
+    dataTable.addColumn({
+        type: 'string',
+        id: 'Name'
+    });
+    dataTable.addColumn({
+        type: 'date',
+        id: 'Start'
+    });
+    dataTable.addColumn({
+        type: 'date',
+        id: 'End'
+    });
+
+
+    //var arr = [['NS','OK',[14,0,0],[14,15,0]],['NS','CRITICAL',[14,15,0],[14,20,0]]]
+    var arr = eval(gData)
+    //console.log(arr)
+    for (var item in arr) {
+        var itemList = arr[item];
+        for (var i = 0; i < itemList.length; i++) {
+            var el = itemList[i];
+            if (typeof(el) != "string") {
+                itemList[i] = new Date(0, 0, 0, el[0], el[1], el[2]);
+                //console.log(el);
+
+            }
+        }
+    }
+    //console.log(arr);
+
+
+    dataTable.addRows(arr);
+
+    //console.log(dataTable.getValue(0,1))
+    if (dataTable.getValue(0, 1) == 'OK') {
+        var colors = ['green', 'red']
+    } else {
+        var colors = ['red', 'green']
+    }
+
+    //console.log(colors)
+
+
+
+    var options = {
+        timeline: {
+            showRowLabels: true,
+            groupByRowLabel: true,
+            rowLabelStyle: {
+                fontName: 'Arial',
+                fontSize: 12,
+                color: '#603913'
+            },
+            barLabelStyle: {
+                fontName: 'Arial',
+                fontSize: 10
+            }
+        },
+        tooltip: {
+            trigger: 'focus'
+        },
+        //colors: ['orange','green','red'],
+        backgroundColor: '#ffd',
+        avoidOverlappingGridLines: false,
+        colors: colors,
+        width: 900
+    };
+
+    chart.draw(dataTable, options);
+}
+
+function drawArchChart(archData) {
+        console.log("6666666666 "+archData)
+      //google.load("visualization", "1.1", {packages:["bar"]});
+       var data = google.visualization.arrayToDataTable(eval(archData));
+
+        var options = {
+          chart: {
+            title: 'OpenStack Service Monitor',
+            subtitle: ' ',
+          }
+        };
+
+        var chart = new google.charts.Bar(document.getElementById('archdata'));
+
+        chart.draw(data, options);
+      }
+
+
+$(document).ready(function(){
+        
+//google.setOnLoadCallback(getDataList);
+getDataList()
+getArchDataList()
+});
+</script>
+
+<div>
+    <div class="dashlet">
+        <div class="dashletTitle">Service Status TimeLine</div>
+        <div class="dashletContent">
+            <div id="timeline" style="width: 400px; height: 400px;"></div>
+        </div>
+    </div>
+    <div class="dashlet">
+        <div class="dashletTitle">Service Status in Percentage</div>
+        <div class="dashletContent">
+            <div id="archdata" style="width: 700px; height: 600px;"></div>
+        </div>
+    </div>
+</div>

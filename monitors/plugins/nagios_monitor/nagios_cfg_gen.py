@@ -42,10 +42,10 @@ class NagiosConfigGenUtil(object):
 
 	@staticmethod
 	def generate_nagios_appvm_config(ipaddress,host_name,role):
-		check_commands = [('check-vm-external-http','HTTP external network reachability check','t'),\
-							('check-vm-external-ssh','SSH external network reachability check','t'),\
-							('check-vm-storage-access','Storage access check','t'),\
-							('check_ssh','SSH Connectivity Check','f'),\
+		check_commands = [('check-vm-external-http','HTTP External','t'),\
+							('check-vm-external-ssh','SSH External','t'),\
+							('check-vm-storage-access','Storage Check','t'),\
+							('check_ssh','SSH to VM','f'),\
 							('check_ping!100.0,20%!500.0,60%','PING','f')]
 
 		file_path = os.getcwd() + os.sep + 'nagios_vm_host.cfg'

@@ -64,6 +64,7 @@ class NagiosMonitor(BaseMonitor):
             infra.display_on_terminal(self, "Received notification from Runner")
         """    
         startTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        
         ctr = 0
         #while infra.is_execution_completed(self.finish_execution) is False:
         while(finish_execution):
@@ -74,11 +75,14 @@ class NagiosMonitor(BaseMonitor):
             time.sleep(20)
             # below counter check and break loop will be removed during actual execution
             ctr+=1
-            if ctr == 10:
+            if ctr == 5:
                 break
         endTime = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+        endSeconds = time.time()
         #NagiosMonitor.printServiceState(self.reportDict,startTime,endTime)
         NagiosMonitor.writeToFile(self.reportDict,startTime,endTime)
+        NagiosMonitor.calSummaryReport(self.summaryDict,self.reportDict,endSeconds)
+        self.health_display_report()
         
     
     #@staticmethod
@@ -119,21 +123,22 @@ class NagiosMonitor(BaseMonitor):
                             NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
                                                          data[ip]["services"][key]["plugin_output"])
                 """
-            #columns
+        
+        #columns
         #print '-' * 157
-        tblLine = '-' * 82
+        tblLine = '-' * 62
         infra.display_on_terminal(self,tblLine)
         """
         print NagiosMonitor.get_severity_color('INFO', format_string % (
                 'Time'.ljust(20),'HostName'.ljust(20),
-                "Service Description".ljust(45),
+                "Service Description".ljust(30),
                 "Status".ljust(9), "Status Information".ljust(40)))
         print '-' * 160
         """
         infra.display_on_terminal(self,
                 NagiosMonitor.get_severity_color('INFO', format_string % (
                 'HostName'.ljust(15),
-                "Service Description".ljust(45),
+                "Service Description".ljust(25),
                 "Status".ljust(9))))
         infra.display_on_terminal(self,tblLine)
         
@@ -181,10 +186,13 @@ class NagiosMonitor(BaseMonitor):
     def updateStatusColor(status,statusDesc):
         if status == "OK":
             return statusDesc
-        elif status == "WARNING":
-            return NagiosMonitor.get_severity_color("WARNING",statusDesc)
         else:
             return NagiosMonitor.get_severity_color("CRITICAL",statusDesc)
+        """
+        elif status == "WARNING":
+            return NagiosMonitor.get_severity_color("WARNING",statusDesc)
+        """
+        
 
     
     def printData(self,format_string,item):
@@ -198,7 +206,7 @@ class NagiosMonitor(BaseMonitor):
         """
         infra.display_on_terminal(self,format_string % (
                 item.get("ip").ljust(15),
-                item.get(NagiosMonitor.headers[1])[:40].ljust(45),
+                item.get(NagiosMonitor.headers[1])[:40].ljust(25),
                 item.get("status").ljust(9)))
 
 
@@ -313,6 +321,7 @@ class NagiosMonitor(BaseMonitor):
             timeStampStatusTup = ipDescStatusList[listLen - 1]
             if timeStampStatusTup[1] != status:
                 tsst=(time.time(),status,ldesc)
+                ipDescStatusList.append(tsst)
         else:
             ipDescStatusList=[]
             tsst=(time.time(),status,ldesc)
@@ -320,26 +329,56 @@ class NagiosMonitor(BaseMonitor):
             reportDict[dkey]=ipDescStatusList
 
     @staticmethod
-    def calSummaryReport(ip,desc,summaryDict,reportDict,status,ldesc):
-        dkey="%s##%s" % (ip,desc)
-        skey="%s##%s" % (dkey,status)
-        
-        if not summaryDict.has_key(skey):
-            summaryDict[skey] = 0
-        print summaryDict[skey]
-        if reportDict.has_key(dkey):
-            ipDescStatusList = reportDict.get(dkey)
-            listLen = len(ipDescStatusList)
-            timeStampStatusTup = ipDescStatusList[listLen - 1]
-            if timeStampStatusTup[1] != status:
-                pTime = timeStampStatusTup[0]
-                print "================"
-                print pTime
-                print "================"
-                seconds = time.time() - pTime
-                print "================"
-                print seconds
-                print "================"
-                summaryDict[skey] = summaryDict[skey] + seconds
-                print summaryDict[skey]
+    def calSummaryReport(summaryDict,reportDict,endSeconds):
+        for dkey in reportDict:
+            serviceList = reportDict.get(dkey)
+            prevTup = ()
+            for tup in serviceList:
+                skey="%s##%s" % (dkey,tup[1])
+                if not summaryDict.has_key(skey):
+                    summaryDict[skey] = 0
+                
+                if len(prevTup) > 0:
+                    pkey="%s##%s" % (dkey,prevTup[1])
+                    ptime = summaryDict[pkey] 
+                    seconds = tup[0] - prevTup[0]
+                    summaryDict[pkey] = ptime + seconds
+                    
+                prevTup = tup
+                
+            pkey="%s##%s" % (dkey,prevTup[1])
+            ptime = summaryDict[pkey] 
+            seconds = endSeconds - prevTup[0]
+            summaryDict[pkey] = ptime + seconds
+        print summaryDict             
+    
+    def health_display_report(self):
+        infra.create_report_table(self, "Nagios Montitor Summary Repory")
+        infra.add_table_headers(self, "Nagios Montitor Summary Repory",
+                                ["Host", "Description", "OK(secs)",
+                                 "CRITICAL(secs)"])
+        processedKey = {}
+        for key in self.summaryDict:
+            if processedKey.has_key(key):
+                continue
+            lst = key.split("##")
+            key2 = ""
+            ok_sec = 0
+            crit_sec = 0
+            if lst[2] == "OK":
+                key2 = lst[0]+"##"+lst[1]+"##CRITICAL"
+                ok_sec = int(self.summaryDict[key])
+            else:
+                key2 = lst[0]+"##"+lst[1]+"##OK"
+                crit_sec = int(self.summaryDict[key])
+                
+            if  self.summaryDict.has_key(key2):
+                processedKey[key2] = key2
+                if ok_sec > 0:
+                    crit_sec = int(self.summaryDict[key2])
+                else:
+                    ok_sec = int(self.summaryDict[key2])
+            
+            infra.add_table_rows(self, "Nagios Montitor Summary Repory",
+                                 [[lst[0], lst[1],ok_sec,crit_sec]])
             
