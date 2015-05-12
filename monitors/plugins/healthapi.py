@@ -74,7 +74,7 @@ class HealthAPI(BaseMonitor):
         tables_list = ['Endpoints Downtime', 'Agent Downtime']
         #infra.display_infra_report()
 
-    def display_msg_on_term(self, msg, status):
+    def display_msg_on_term(self, msg, status, host_list=None):
         '''
         Generic function invoked by other check functions to print
         status.
@@ -82,6 +82,9 @@ class HealthAPI(BaseMonitor):
         msg = msg.ljust(50)
         status_msg = status.ljust(10)
         msg = msg + status_msg
+
+        if host_list is not None and len(host_list) > 0:
+            msg = msg + str(host_list)
         if status == 'PASS':
             infra.display_on_terminal(self, msg, "color=green")
         else:
@@ -149,7 +152,7 @@ class HealthAPI(BaseMonitor):
         status, message, service_list = nova_instance.nova_service_list()
         if status == 200:
             if detail == False:
-                self.display_msg_on_term("Nova Endpoint Check", "PASS") 
+                self.display_msg_on_term("Nova Endpoint Check", "PASS")
                 results['nova'] = 'OK'
                 self.update_downtime_dict(self.endpoint_downtime_dict,
                                           'nova-api', 'All Hosts', 'OK')
@@ -171,12 +174,12 @@ class HealthAPI(BaseMonitor):
                         self.update_downtime_dict(self.agents_downtime_dict,
                                                   service.binary, service.host,
                                                   'FAIL')
-                        self.display_msg_on_term(msg, "FAIL")
+                        self.display_msg_on_term(msg, "FAIL", [service.host])
                     else:
                         self.update_downtime_dict(self.agents_downtime_dict,
                                                   service.binary, service.host,
                                                   'OK')
-                        self.display_msg_on_term(msg, "PASS")
+                        self.display_msg_on_term(msg, "PASS", [service.host])
                     results.append(service_dict)
         else:
             
@@ -230,7 +233,7 @@ class HealthAPI(BaseMonitor):
                                               agent['binary'], agent['host'],
                                               agent_dict['Status'])
                     msg = "%s state" % agent['binary']
-                    self.display_msg_on_term(msg, state)
+                    self.display_msg_on_term(msg, state, [agent['host']])
                     results.append(agent_dict)
         else:
             self.update_downtime_dict(self.endpoint_downtime_dict,
