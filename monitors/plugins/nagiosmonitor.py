@@ -114,9 +114,11 @@ class NagiosMonitor(BaseMonitor):
                 NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,
                             NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
                                                         data[ip]["services"][key]["plugin_output"])
+                """
                 NagiosMonitor.calSummaryReport(ip,key,summaryDict,reportDict,
                             NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
                                                          data[ip]["services"][key]["plugin_output"])
+                """
             #columns
         #print '-' * 157
         tblLine = '-' * 82
@@ -321,15 +323,23 @@ class NagiosMonitor(BaseMonitor):
     def calSummaryReport(ip,desc,summaryDict,reportDict,status,ldesc):
         dkey="%s##%s" % (ip,desc)
         skey="%s##%s" % (dkey,status)
+        
         if not summaryDict.has_key(skey):
             summaryDict[skey] = 0
+        print summaryDict[skey]
         if reportDict.has_key(dkey):
             ipDescStatusList = reportDict.get(dkey)
             listLen = len(ipDescStatusList)
             timeStampStatusTup = ipDescStatusList[listLen - 1]
             if timeStampStatusTup[1] != status:
-                pTime = ipDescStatusList[0]
-                seconds = time.time().total_seconds() - pTime.total_seconds()
+                pTime = timeStampStatusTup[0]
+                print "================"
+                print pTime
+                print "================"
+                seconds = time.time() - pTime
+                print "================"
+                print seconds
+                print "================"
                 summaryDict[skey] = summaryDict[skey] + seconds
                 print summaryDict[skey]
             
