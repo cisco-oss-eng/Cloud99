@@ -77,9 +77,9 @@ class NagiosConfigGen(object):
     
     def printHostList(self):
         for hostObj in self.openstack_host_list:
-            print "%s - %s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),hostObj.getPassword(),str(hostObj.isNagiosRunning()))
+            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),str(hostObj.isNagiosRunning()))
         for hostObj in self.openstack_vm_list:
-            print "%s - %s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),hostObj.getPassword(),str(hostObj.isNagiosRunning()))
+            print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),hostObj.getUser(),str(hostObj.isNagiosRunning()))
 
     def generateNagiosHostConfig(self):
         for hostObj in self.openstack_host_list:
@@ -98,6 +98,6 @@ if __name__ == '__main__':
     yhp.generateNagiosHostConfig()
     yhp.setOpenstackAppVmIp("appvmlist")
     #yhp.performNagiosServiceCheck("appvm")
-    #yhp.printHostList()
+    yhp.printHostList()
     yhp.generateNagiosAppVmConfig()
   

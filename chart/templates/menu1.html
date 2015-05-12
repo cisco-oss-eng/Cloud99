@@ -116,7 +116,7 @@ function drawChart(gData) {
         backgroundColor: '#ffd',
         avoidOverlappingGridLines: false,
         colors: colors,
-        width: 900
+        width: 863
     };
 
     chart.draw(dataTable, options);
@@ -131,7 +131,8 @@ function drawArchChart(archData) {
           chart: {
             title: 'OpenStack Service Monitor',
             subtitle: ' ',
-          }
+          },
+	  width: 863
         };
 
         var chart = new google.charts.Bar(document.getElementById('archdata'));
@@ -152,7 +153,7 @@ getArchDataList()
     <div class="dashlet">
         <div class="dashletTitle">Service Status TimeLine</div>
         <div class="dashletContent">
-            <div id="timeline" style="width: 400px; height: 400px;"></div>
+            <div id="timeline" style="width: 700px; height: 400px;"></div>
         </div>
     </div>
     <div class="dashlet">

@@ -10,7 +10,7 @@ python monitors/plugins/nagios_monitor/nagios_cfg_generator.py
 if [ ! -z "$?"  -a "$?" != 0 ]
 then
 	echo "Failed tp execute the config generator command"
-	exit 2
+	#exit 2
 fi
 if [ -f "nagios_host.cfg" ]
 then
@@ -20,7 +20,7 @@ fi
 if [ ! -z "$?"  -a "$?" != 0 ]
 then
 	echo "Failed tp execute the config generator command"
-	exit 2
+	#exit 2
 else
 	echo "Removing newly generated nagios config file "
 	#ls -al

@@ -109,20 +109,22 @@ class NagiosMonitor(BaseMonitor):
 
                 if len(result) <= 0:
                     continue
+                
+                result['status'] = NagiosMonitor.updateStatusColor(result['status'],result["status"])
+                ret.append(result)
 
+                """
                 if result.has_key("output") and len(result["output"]) < 40: # To make multiline
+                    # Update the color status before adding to result
+                    result['status'] = NagiosMonitor.updateStatusColor(result['status'],result["status"])
                     ret.append(result)
                 else:
                     NagiosMonitor.splitLines(result,ret)
+                """
                 
                 NagiosMonitor.collectFlappingServiceData(ip,key,reportDict,
                             NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
                                                         data[ip]["services"][key]["plugin_output"])
-                """
-                NagiosMonitor.calSummaryReport(ip,key,summaryDict,reportDict,
-                            NagiosMonitor.getStatusStr(data[ip]["services"][key]["current_state"]),
-                                                         data[ip]["services"][key]["plugin_output"])
-                """
         
         #columns
         #print '-' * 157
@@ -145,19 +147,15 @@ class NagiosMonitor(BaseMonitor):
         #print '-' * 157
         for item in ret:
             if item.get("ip") == " " and item.get("description") == " ":
-                #NagiosMonitor.printData(format_string,item)
                 self.printData(format_string,item)
                 continue
             if host_filter != []: 
                 if item.get("ip") in host_filter: 
-                    #NagiosMonitor.printData(format_string,item)
                     self.printData(format_string,item)
             elif filterType == "openstackvm": 
                 if item.get("ip").startswith("AppVm-"):
-                    #NagiosMonitor.printData(format_string,item)
                     self.printData(format_string,item)
             else:
-                #NagiosMonitor.printData(format_string,item)
                 self.printData(format_string,item)
                 
         #print '-' * 157
@@ -168,7 +166,9 @@ class NagiosMonitor(BaseMonitor):
         filterList = []
         if filterType == 'node':
             for key in hostConfig.keys():
-                if hostConfig[key]["role"] == "controller" or hostConfig[key]["role"] == "network" or hostConfig[key]["role"] == "compute":
+                if hostConfig[key]["role"] == "controller" or \
+                        hostConfig[key]["role"] == "network" or \
+                        hostConfig[key]["role"] == "compute":
                     filterList.append(key)
         return filterList             
     
@@ -238,7 +238,8 @@ class NagiosMonitor(BaseMonitor):
         if status == '0':
             return "OK"
         elif status == '1':
-            return "WARNING" 
+            return "CRITICAL" 
+            # return "CRITICAL"
         else:
             return "CRITICAL" 
 
@@ -287,7 +288,7 @@ class NagiosMonitor(BaseMonitor):
     def get_severity_color(severity, text):
         # print severity, text
         if severity == 'CRITICAL':
-            return "\033[" + '31' + "m" + text + "\033[0m"
+            return "\033[" + '31' + "m" + text + "\033[0m".ljust(5)
         elif severity == 'WARNING':
             return "\033[" + '33' + "m" + text + "\033[0m".ljust(6)
         elif severity == 'INFO':
