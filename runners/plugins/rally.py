@@ -39,6 +39,7 @@ class RallyRunner(BaseRunner):
             line = proc.stdout.readline()
             if pattern in line:
                 infra.display_on_terminal(self, "Notifying all waiters")
+                time.sleep(5)
                 infra.notify_all_waiters(sync)
 
             infra.display_on_terminal(self, line)

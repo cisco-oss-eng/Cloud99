@@ -47,6 +47,10 @@ disruptors:
            process_name : openstack-nova-api.service
            role : controller
            type : graceful
+       keystone_api:
+           process_name: httpd
+           role : controller
+           type : graceful
        neutron_api:
            process_name : neutron-server.service
            role: controller

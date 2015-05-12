@@ -9,12 +9,13 @@ executors:
         mode: parallel
         repeat: 1
         sync: true
-        ha_interval: 75 
+        ha_interval:  3 
+#        disruption_count : 1 
 
         # disruption scenario
         #node_disruption : [compute_node]
         execute: [boot_test]
         start: [openstack_api, ansible, nagios]
-        process_disruption: [nova_scheduler]
+        process_disruption: [neutron_api]
         #container_disruption: [keystone_container]
     -

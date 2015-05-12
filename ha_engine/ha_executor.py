@@ -80,7 +80,10 @@ class HAExecutor(object):
                 ha_interval = None
                 if 'ha_interval' in executor_block:
                     ha_interval = executor_block.get('ha_interval', None)
-
+                disruption_count = 1 
+                if 'disruption_count' in executor_block:
+                    disruption_count = executor_block.get('disruption_count', None)
+                 
                 LOG.info("Block will be repeated %s times", repeat_count)
                 # Repeat count in each steps
                 for i in range(repeat_count):
@@ -119,6 +122,7 @@ class HAExecutor(object):
                                                    nodes,
                                                    step_action,
                                                    ha_interval,
+                                                   disruption_count,
                                                    parallel=parallel,
                                                    use_sync=use_sync)
 
@@ -151,7 +155,7 @@ class HAExecutor(object):
             os.unlink(f)
 
     def execute_the_block(self, executor_index, nodes, step_action,
-                          ha_interval, parallel=False, use_sync=False):
+                          ha_interval, disruption_count, parallel=False, use_sync=False):
 
         use_process = False
         node_list = []
@@ -225,12 +229,14 @@ class HAExecutor(object):
                         t = multiprocessing.Process(target=self.execute_the_command,
                                                 args=(class_object, node,
                                                       step_action, ha_interval,
+                                                      disruption_count,
                                                       sync, finish_execution))
                         '''
                     else:
                         t = threading.Thread(target=self.execute_the_command,
                                                 args=(class_object, node,
                                                       step_action, ha_interval,
+                                                      disruption_count,
                                                       sync, finish_execution))
                     self.executor_threads.append(t)
                 else:
@@ -243,7 +249,8 @@ class HAExecutor(object):
                 ha_infra.ha_exit(0)
 
     @staticmethod
-    def execute_the_command(class_object, node, cmd, ha_interval, sync=None,
+    def execute_the_command(class_object, node, cmd, ha_interval, 
+                            disruption_count, sync=None,
                             finish_execution=None):
         if class_object and cmd:
             entire_block_arguments = getattr(class_object,
@@ -255,6 +262,8 @@ class HAExecutor(object):
                             "set_input_arguments")(actual_arguments)
         if ha_interval:
             setattr(class_object, "ha_interval", ha_interval)
+        if disruption_count:
+            setattr(class_object, "disruption_count", disruption_count)
 
         getattr(class_object, cmd)(sync=sync,
                                         finish_execution=finish_execution)

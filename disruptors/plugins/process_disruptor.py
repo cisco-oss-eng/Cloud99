@@ -57,33 +57,37 @@ class ProcessDisruptor(BaseDisruptor):
             infra.display_on_terminal(self, "Received notification, Starting")
 
         ha_interval = self.get_ha_interval()
+        disruption_count = self.get_disruption_count()
+        infra.display_on_terminal(self, "Process will be disrupted " , str(disruption_count))
         while infra.is_execution_completed(self.finish_execution) is False:
-            for node in nodes_to_be_disrupted:
-                ip = host_config.get(node, None).get('ip', None)
-                user = host_config.get(node, None).get('user', None)
-                password = host_config.get(node, None).get('password', None)
-                infra.display_on_terminal(self, "IP: ", ip, " User: ",
+            if disruption_count:
+              disruption_count = disruption_count - 1
+              for node in nodes_to_be_disrupted:
+                  ip = host_config.get(node, None).get('ip', None)
+                  user = host_config.get(node, None).get('user', None)
+                  password = host_config.get(node, None).get('password', None)
+                  infra.display_on_terminal(self, "IP: ", ip, " User: ",
                                           user, " Pwd: ", password)
-                infra.display_on_terminal(self, "Stopping ", process_name)
-                infra.display_on_terminal(self, "Executing ", rhel_stop_command)
-                code, out, error = infra.ssh_and_execute_command(ip, user,
+                  infra.display_on_terminal(self, "Stopping ", process_name)
+                  infra.display_on_terminal(self, "Executing ", rhel_stop_command)
+                  code, out, error = infra.ssh_and_execute_command(ip, user,
                                                                  password,
                                                             rhel_stop_command)
-                infra.add_table_rows(self, table_name,
+                  infra.add_table_rows(self, table_name,
                                      [[ip, process_name,
                                        utils.get_timestamp(),
                                        HAConstants.WARNING +
                                        'Stopped' + HAConstants.ENDC]])
-                infra.display_on_terminal(self, "Sleeping for interval ",
+                  infra.display_on_terminal(self, "Sleeping for interval ",
                                       str(ha_interval), " seconds")
-                time.sleep(ha_interval)
-                infra.display_on_terminal(self, "Starting ", process_name)
-                infra.display_on_terminal(self, "Executing ", rhel_start_command)
-                code, out, error = infra.ssh_and_execute_command(ip, user,
+                  time.sleep(ha_interval)
+                  infra.display_on_terminal(self, "Starting ", process_name)
+                  infra.display_on_terminal(self, "Executing ", rhel_start_command)
+                  code, out, error = infra.ssh_and_execute_command(ip, user,
                                                             password,
                                                          rhel_start_command)
-                time.sleep(ha_interval)
-                infra.add_table_rows(self, table_name,
+                  time.sleep(ha_interval)
+                  infra.add_table_rows(self, table_name,
                                      [[ip, process_name,
                                        utils.get_timestamp(),
                                        HAConstants.OKGREEN +
