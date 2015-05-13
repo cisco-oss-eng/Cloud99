@@ -13,9 +13,9 @@ executors:
 #        disruption_count : 1 
 
         # disruption scenario
-        #node_disruption : [compute_node]
+        node_disruption : [compute_node]
         execute: [boot_test]
         start: [openstack_api, ansible, nagios]
         #process_disruption: [neutron_api]
-        container_disruption: [neutron_api_container]
+        #container_disruption: [neutron_api_container]
     -

@@ -30,10 +30,10 @@ monitors:
             frequency: 5
             max_hist: 25
             sudo: False
-            dockerized: True 
+            dockerized: False 
             mariadb:
               user: root
-              password: password
+              password: 7711238d48b844f9 
     healthapi:
         openstack_api:
             openrc_file:

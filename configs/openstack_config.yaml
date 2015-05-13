@@ -1,15 +1,15 @@
 control-1:
-    ip: 172.22.191.154
+    ip: 172.29.87.40
     user: root
     password: cisco123
     role: controller
 compute-1:
-    ip: 172.22.191.154
+    ip: 172.29.87.39
     user: root
     password: cisco123
     role: compute
 compute-2:
-    ip: 172.22.191.154
+    ip: 172.29.87.38
     user: root
     password: cisco123
     role: compute
