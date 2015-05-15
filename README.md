@@ -1,44 +1,48 @@
-# OpenstackHA
- Framework to test the Openstack HA
- High availability testing is a critical aspect of certifying an Openstack cloud for 
-production. But high availability testing of openstack clouds involves a combination
-of several aspects
-1. Generating an initial load on the cloud before testing starts
-2. Health Checks to make sure the cloud is ready for HA testing
-3. Running control plane/data plane scale tests in parallel with disruptions
-4. Active monitoring to get an idea of the impact of disruption event
+## Cloud99 (Framework for Openstack HA Testing ##
 
-This tool attempts to automate the entire flow of HA testing of 
-Openstack clouds. The test tool has 3 important concepts
-1. Monitors 
-2. Disruptors
-3. Runners
+Testing an OpenStack cloud for High Availability(HA)  is a critical aspect of certifying an OpenStack Cloud for production. But High Availability testing of OpenStack clouds involves a combination of several aspects
 
-All three of the above are written based on a plugin model so you can
-have multiple backend plugins for each of these. For now the following 
-plugins have been implemented but you can add your own if these dont fit
-your needs. 
+ - Generating an initial load on the cloud before testing starts
+ - Health checks to make sure the cloud is ready for HA testing
+ - Running control/plane data plane tests in parallel with service disruptions
+ - Active monitoring of the cloud during the HA test run
+ -  Quantification of failures and test results
 
-Monitors as the name suggest monitor the cloud while the Disruption event/
-tests are running. For now the following monitors are supported
-a. Openstack API monitor (essentially reports nova service-list and neutron agent-list)
-b. Ansible host monitor (monitors that all required services are running on your openstack nodes)
-c. Nagios plugin monitor (Monitors your openstack nodes if nagios is enabled. Always monitors Openstack
-pre-defined application VMs)
+This tool attempts to automate some of these workflows and makes it easier for the Cloud admin to trigger disruptions and asses "how available" the OpenStack cloud actually is. 
 
-Disruptors as the name suggest disrupts the Openstack services/Nodes. For now
-the following disruptors are supported
-a. Node disruptor (reboots nodes like compute, network, controller etc)
-b. Process disruptor (disrupts/kills openstack services on specific nodes)
-c. Container disruptor (disrupts containers in environments like kolla openstack installations)
- 
-Runners are a critical part which actually runs scale/functionality tests while
-disruption is happening. For now the following runners are supported
-a. Rally runner (provide a pointer to your rally scenario file)
+Cloud99 has 3 important components embedded
 
-The way the framework works is it spawns seperate threads for each runner, monitor and disruptor
-and performs all these in parallel. So for example you can do things like
-Perform a VM boot test and in parallel stop openstack nova scheduler service for instance
-and assess the impact through monitoring
+ - Monitors
+ - Disruptors
+ - Runners
 
-How to run/use the tool (User View)
+All 3 of the above are written using a plugin model so there can be several monitors, disruptors and runners based on your OpenStack deployment. For now we implement commonly used plugins for some of these. The sections below describe these in more detail. 
+
+
+----------
+Monitors as the name suggests, monitor the cloud while the disruption event/tests are in progress. For now the following monitors are supported. 
+
+ - OpenStack API monitor (reports status of API services and agents)
+ - Ansible Host monitor (uses ansible to login to all your openstack nodes and check service status)
+ - Nagios monitor (Leverage Nagios agents if available in your openstack nodes, also always monitors application VMs on cloud)
+
+For the Nagios monitor being used with Application VMs we prebuild a qcow2 images with nagios agent enabled and launch this on the cloud before testing starts. This flow will also be automated in the next release.
+
+Disruptors as the name suggests disrupts the Openstack services/Nodes. For now the following disruptors are supported
+
+ - Node disruptor (reboots openstack nodes like compute and controllers)
+ - Process disruptor (disrupts services on different nodes)
+ - Container disruptor (supports stopping docker containers, more for container based openstack deployments)
+
+Runners are the critical part which actually runs scale/functionality tests in parallel with disruptions. This can be any script/framework that runs OpenStack tests. The only requirement is the framework should continue on failure as disruptions can cause failures. For now we support the following runner
+
+ - Rally runner (provide a pre-installer rally framework and pointer to scenario file)
+
+The framework spawns separate threads for each runner, monitor and disruptors and performs all these in parallel. So for example you can perform a test which Boots  a VM, stop the nova scheduler and monitors the cloud. All these actions happen in parallel.  
+
+Now lets talk about how to use the tool and commands involved
+
+
+----------
+**Getting Started**
+
