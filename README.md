@@ -54,3 +54,27 @@ Before you run the tool you need to provide some information to the tool about y
 
 The configs directory has information on configuration files that you need to modify to use the tool. 
 
+So let us look at what changes you need to make in the configuration files. In disruptors.yaml you specify the roles and names of your OpenStack processes and also if your controllers are running in seperate nodes.
+
+In monitors.yaml under ansiblemonitor specify the Mysql/mariadb user and password. Also under healthapi provide a pointer to your openrc file and password or source your openrc before running the script.
+
+Under openstack_config.yaml specify your openstack nodes with the roles you specified in disruptors.yaml. This would include the list of your controller and compute nodes.
+
+In runners.yaml specify pointer to your rally installation and also a pointer to rally scenario file. For now we support rally as runner but if you need to add your own you need to add code to runners/plugin directory.
+
+Now finally the executor.yaml brings everything together where you can specify the kind of disruption and also in start specify what services to monitor. For now have 
+start: [openstack_api, ansible]
+You can also specify here what kind of disruption you need. Look at the example files checked into configs directory to get an idea
+Finally run the command 
+python ha_engine/ha_main.py -f configs/executor.yaml to run the tool
+
+It will spawn xterms for monitors, disruptors and runners and you will see everything in action. Finally on the main window you see summary results
+
+**Caveats**
+
+ 1. As specified before the tool is in beta phase so we expect to see a few issues but we help with support requests to our email alias 
+ 2. For now the rally runner needs a patch to rally summary report so please rally/cmd/commands/task.py with caveats/task.py and redo rally install. This fix will me merged into Rally and than you dont need this
+ 2. For now the tool needs xterm to launch all the windows for different disruptors, ,monitors etc. This will be removed in future releases
+ 3. The config files will be consolidated in future releases and you would not need to manipulate so many files
+ 4. The nagios portion assumes you have a nagios server pre-installed somewhere. We will provide instructions for these in future releases
+
