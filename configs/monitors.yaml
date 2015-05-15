@@ -2,9 +2,7 @@ monitors:
     # Sample monitor template
     # <monitor_name>: (Depicts name of the backend plugin class under monitors/plugins)
     #     <monitor_ref>: (Depicts the logical name to be provided in executor.yaml
-              <input_parameters> : (Consist of input parameters passed in to the monitor class)
-  
- 
+    #          <input_parameters> : (Consist of input parameters passed in to the monitor class)
     # Example config for nagios monitor
     # type: denotes monitoring openstack hosts vs applicationvm
     # Use keyword "openstackvm" to denote monitoring existing cloud resources.
@@ -38,4 +36,5 @@ monitors:
         openstack_api:
             openrc_file:
             password:
-            frequency: 5 
+            frequency: 5
+            max_entries: 20 
