@@ -1,3 +1,4 @@
+# Define your openstack VM nodes with ip and password info
 control-1:
     ip: 172.29.87.40
     user: root

@@ -1,29 +1,25 @@
 monitors:
-    # plugin name
-    keystone:
-        # list
-        keystone_service:
-            ip:
-            user:
-            password:
-        keystone_service1:
-            ip:
-            user:
-            password:
-    neutron:
-        neutron_service:
-            ip:
-            user:
-            password:
-    processes:
-        libvirt:
-            ip:
-            pid:
+    # Sample monitor template
+    # <monitor_name>: (Depicts name of the backend plugin class under monitors/plugins)
+    #     <monitor_ref>: (Depicts the logical name to be provided in executor.yaml
+              <input_parameters> : (Consist of input parameters passed in to the monitor class)
+  
+ 
+    # Example config for nagios monitor
+    # type: denotes monitoring openstack hosts vs applicationvm
+    # Use keyword "openstackvm" to denote monitoring existing cloud resources.
+    # List of floatingips for cloud resources in file appvmlist       
     nagiosmonitor:
         nagios:
             type: openstackvm 
     nagioscfgset:
         nagioscfg:
+
+    # Example config for ansible host monitor
+    # frequency: interval of polling
+    # dockerized: set to True in container based installations
+    # mariadb/user, mariadb/password: Specify correct values for your cloud 
+   
     ansiblemonitor:
         ansible:
             loglevel: ERROR
@@ -33,11 +29,13 @@ monitors:
             dockerized: False 
             mariadb:
               user: root
-              password: 7711238d48b844f9 
+              password: 7711238d48b844f9
+
+
+    # Example config for Openstack endpoint and service monitor
+    # openrc_file and password: Specify pointer to openrc credentials or source openrc before running script 
     healthapi:
         openstack_api:
             openrc_file:
             password:
             frequency: 5 
-            max_entries: 20
-

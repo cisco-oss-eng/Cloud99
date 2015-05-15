@@ -1,13 +1,15 @@
 runners:
+   # Sample runner file
+   # <runner_name>: (Name of backend plugin class for runner in runners/plugins)
+   #    <runner_ref>: (Logical name for runner test specified in executor.yaml)
+   #        <input_parameters> : (Input parameters passed to the runner class)
     rally:
+        # Rally boot test
         boot_test:
             scenario_name: boot 
             rally_path:  /Users/akalambu/python_venv/venv/bin/rally 
             scenario_file: /Users/akalambu/rally/rally/boot.json
-        rally_sanity:
-            scenario_name : sanity
-            rally_path: /Users/akalambu/python_venv/venv/bin/rally
-            scenario_file: /Users/akalambu/rally/rally/rally_sanity.json
+        # Rally keystone tests
         keystone_test:
             scenario_name : keystone 
             rally_path: /Users/akalambu/python_venv/venv/bin/rally
