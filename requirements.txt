@@ -1,0 +1,9 @@
+PyYAML>=3.11
+prettytable>=0.7.2
+paramiko>=1.15.2
+ansible>=1.9.1
+python-novaclient>=2.24.1
+python-neutronclient>=2.5.0
+python-glanceclient>=0.18.0
+python-cinderclient==1.2.0
+
