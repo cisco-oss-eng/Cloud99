@@ -22,7 +22,8 @@
       <h2>
 <a id="cloud99-framework-for-openstack-ha-testing" class="anchor" href="#cloud99-framework-for-openstack-ha-testing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Cloud99 (Framework for Openstack HA Testing</h2>
 
-<p>Testing an OpenStack cloud for High Availability(HA)  is a critical aspect of certifying an OpenStack Cloud for production. But High Availability testing of OpenStack clouds involves a combination of several aspects</p>
+<p><img src="cloud.png" alt="">
+Testing an OpenStack cloud for High Availability(HA) is a critical aspect of certifying an OpenStack Cloud for production. But testing an OpenStack cloud to ensure that it meets the criteria for High Availability can become quite complex and involves a combination of several aspects</p>
 
 <ul>
 <li>Generating an initial load on the cloud before testing starts</li>
@@ -34,7 +35,7 @@
 
 <p>This tool attempts to automate some of these workflows and makes it easier for the Cloud admin to trigger disruptions and asses "how available" the OpenStack cloud actually is. </p>
 
-<p>Cloud99 has 3 important components embedded</p>
+<p>Cloud99 has 3 important components built-in</p>
 
 <ul>
 <li>Monitors</li>
@@ -77,6 +78,42 @@
 <hr>
 
 <p><strong>Getting Started</strong></p>
+
+<pre><code>git clone https://github.com/cisco-oss-eng/Cloud99.git
+pip install -r requirements.txt
+sudo ./install.sh
+python ha_engine/ha_main.py -f configs/executor.yaml
+</code></pre>
+
+<p>Before you run the tool you need to provide some information to the tool about your openstack cloud and also what kind of disruptions you would like to have. </p>
+
+<p>The configs directory has information on configuration files that you need to modify to use the tool. </p>
+
+<p>So let us look at what changes you need to make in the configuration files. In disruptors.yaml you specify the roles and names of your OpenStack processes and also if your controllers are running in seperate nodes.</p>
+
+<p>In monitors.yaml under ansiblemonitor specify the Mysql/mariadb user and password. Also under healthapi provide a pointer to your openrc file and password or source your openrc before running the script.</p>
+
+<p>Under openstack_config.yaml specify your openstack nodes with the roles you specified in disruptors.yaml. This would include the list of your controller and compute nodes.</p>
+
+<p>In runners.yaml specify pointer to your rally installation and also a pointer to rally scenario file. For now we support rally as runner but if you need to add your own you need to add code to runners/plugin directory.</p>
+
+<p>Now finally the executor.yaml brings everything together where you can specify the kind of disruption and also in start specify what services to monitor. For now have 
+start: [openstack_api, ansible]
+You can also specify here what kind of disruption you need. Look at the example files checked into configs directory to get an idea
+Finally run the command 
+python ha_engine/ha_main.py -f configs/executor.yaml to run the tool</p>
+
+<p>It will spawn xterms for monitors, disruptors and runners and you will see everything in action. Finally on the main window you see summary results</p>
+
+<p><strong>Caveats</strong></p>
+
+<ol>
+<li>As specified before the tool is in beta phase so we expect to see a few issues but we help with support requests to our email alias </li>
+<li>For now the rally runner needs a patch to rally summary report so please rally/cmd/commands/task.py with caveats/task.py and redo rally install. This fix will me merged into Rally and than you dont need this</li>
+<li>For now the tool needs xterm to launch all the windows for different disruptors, ,monitors etc. This will be removed in future releases</li>
+<li>The config files will be consolidated in future releases and you would not need to manipulate so many files</li>
+<li>The nagios portion assumes you have a nagios server pre-installed somewhere. We will provide instructions for these in future releases</li>
+</ol>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/cisco-oss-eng/Cloud99">Cloud99</a> is maintained by <a href="https://github.com/cisco-oss-eng">cisco-oss-eng</a>.</span>
