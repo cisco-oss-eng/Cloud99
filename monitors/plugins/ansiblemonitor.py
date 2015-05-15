@@ -599,7 +599,7 @@ class AnsibleMonitor(BaseMonitor):
                     continue
 
                 results['ts_start'] = ts
-                results['ts_end'] = None
+                results['ts_end'] = ts 
                 if name == "process_check":
                     name = results['process']
                     check_name = condensed_res.get(name, None)
