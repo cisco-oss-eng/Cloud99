@@ -1,6 +1,6 @@
 ## Cloud99 (Framework for Openstack HA Testing ##
 
-Testing an OpenStack cloud for High Availability(HA)  is a critical aspect of certifying an OpenStack Cloud for production. But High Availability testing of OpenStack clouds involves a combination of several aspects
+Testing an OpenStack cloud for High Availability(HA) is a critical aspect of certifying an OpenStack Cloud for production. But testing an OpenStack cloud to ensure that it meets the criteria for High Availability can become quite complex and involves a combination of several aspects
 
  - Generating an initial load on the cloud before testing starts
  - Health checks to make sure the cloud is ready for HA testing
@@ -10,7 +10,7 @@ Testing an OpenStack cloud for High Availability(HA)  is a critical aspect of ce
 
 This tool attempts to automate some of these workflows and makes it easier for the Cloud admin to trigger disruptions and asses "how available" the OpenStack cloud actually is. 
 
-Cloud99 has 3 important components embedded
+Cloud99 has 3 important components built-in
 
  - Monitors
  - Disruptors
