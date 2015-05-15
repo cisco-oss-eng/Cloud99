@@ -42,7 +42,15 @@ The framework spawns separate threads for each runner, monitor and disruptors an
 
 Now lets talk about how to use the tool and commands involved
 
-
 ----------
 **Getting Started**
+
+    git clone https://github.com/cisco-oss-eng/Cloud99.git
+    pip install -r requirements.txt
+    sudo ./install.sh
+    python ha_engine/ha_main.py -f configs/executor.yaml
+   
+Before you run the tool you need to provide some information to the tool about your openstack cloud and also what kind of disruptions you would like to have. 
+
+The configs directory has information on configuration files that you need to modify to use the tool. 
 
