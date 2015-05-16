@@ -1,6 +1,6 @@
 #!/bin/bash
-echo "Openstack HA framework Setup"
-echo "---------------------------"; echo
+echo "Cloud99 Setup"
+echo "-------------"; echo
 
 #setup_logs="/tmp/setup.log_"`date +"%b%d%y_%H%M%S"`
 curdir=`pwd`

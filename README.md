@@ -1,5 +1,5 @@
 ![enter image description here](https://github.com/cisco-oss-eng/Cloud99/blob/master/cloud.png?raw=true)
-## Cloud99 (Framework for Openstack HA Testing ##
+## Cloud99 (Framework for Openstack HA Testing) ##
 
 Testing an OpenStack cloud for High Availability(HA) is a critical aspect of certifying an OpenStack Cloud for production. But testing an OpenStack cloud to ensure that it meets the criteria for High Availability can become quite complex and involves a combination of several aspects
 
