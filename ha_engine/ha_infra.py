@@ -11,24 +11,9 @@ import ha_parser
 import os
 import utils.utils as utils
 from ha_constants import HAConstants
-from multiprocessing import Value
-
-from fpdb import  ForkedPdb as fdb
-import paramiko
 
 LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
-
-# --- begin "pretty"
-#
-# pretty - A miniature library that provides a Python print and stdout
-# wrapper that makes colored terminal text easier to use (e.g. without
-# having to mess around with ANSI escape sequences). This code is public
-# domain - there is no license except that you must leave this header.
-#
-# Copyright (C) 2008 Brian Nez <thedude at bri1 dot com>
-#
-# http://nezzen.net/2008/06/23/colored-text-in-python-using-ansi-escape-sequences/
 
 codeCodes = {
     'black':     '0;30', 'bright gray':    '0;37',
@@ -58,25 +43,22 @@ total_launched_process = 0
 start_run_time = None
 stop_run_time = None
 disruptions_count = None
-monitors_count  = None
+monitors_count = None
 runners_count = None
 
-class NotifyNotImplemented(Exception):
-    pass
-
 logger_level = {
-    "DEBUG"   : logging.DEBUG,
-    "INFO"    : logging.INFO,
-    "WARNING" : logging.WARNING,
-    "ERROR"   : logging.ERROR,
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
     "CRITICAL": logging.CRITICAL
 }
 
+
 def ha_logging(name, level="DEBUG"):
-    '''
-    Initializing logger
-    '''
-    if name == None:
+    ''' Initialize the logger for our ha infra'''
+
+    if name is None:
         name = LOG_NAME
 
     LOG = logging.getLogger(name)
@@ -139,17 +121,9 @@ def add_table_rows(self, tablename, rows):
                 for row in rows:
                     table.get(tablename).append(row)
 
+
 def display_infra_report(show_historical=False):
-    '''
-    global total_calls
-    if total_calls is None:
-        total_calls = 0
 
-    total_calls += 1
-
-    if total_calls == get_launched_process_count():
-    #if get_launched_process_count() == get_launched_process_count():
-    '''
     if 1 == 1:
         displayed = False
         r,c = map(int, get_terminal_rc())
@@ -160,7 +134,7 @@ def display_infra_report(show_historical=False):
         print HAConstants.HEADER + title.center(int(c))
         print ("Generated on " +
                utils.get_timestamp(complete_timestamp=True)).center(c) +\
-              HAConstants.ENDC
+               HAConstants.ENDC
         print "Total Number of Launched Processes : ", \
             get_launched_process_count()
         print "Time Started :", start_run_time
@@ -234,38 +208,6 @@ def get_expected_failures():
     return expected_failures
 
 
-def display_report(module, steps=None):
-
-    print '*' * 50
-    if not steps:
-        print '\t HA REPORT @ Final \t'
-    else:
-        print '\t HA REPORT @ ' + str(steps) + '\t'
-    print '*' * 50
-
-    if not module:
-        LOG.critical('Nothing to report')
-        return
-
-    try:
-        result =  module.display_report()
-    except:
-        LOG.info("ERROR while displaying report")
-
-    header = result.get('headers', None)
-    values = result.get('values', None)
-    if header != None and values != None:
-        print '-' * 50
-        print 'Module:: %s ' %(module.__class__.__name__)
-        print '_' * 50
-        #print tabulate(result['values'], headers = result['headers'])
-    else:
-        LOG.critical('Unable to print report')
-        ha_exit(0)
-
-    print '*' * 50
-
-
 def ha_exit(num):
     '''
     exit with num;
@@ -292,25 +234,11 @@ def dump_on_console(info, title):
 
 def pretty(d, indent=0):
     for key, value in d.iteritems():
-          print '\t' * indent + str(key)
-          if isinstance(value, dict):
-             pretty(value, indent+1)
-          else:
-             print '\t' * (indent+1) + str(value)
-
-
-def get_subscribers_list():
-    print "SUBSCRIBERS LIST"
-
-
-def add_subscribers_for_module(subscriber_name, info):
-    publishers = info.get('publishers', None)
-    if not publishers:
-        LOG.error("No Publishers found, Cannot subscribe")
-        ha_exit(0)
-
-    for publisher in publishers:
-       print "%s subscribing to %s" % (subscriber_name, publisher)
+        print '\t' * indent + str(key)
+        if isinstance(value, dict):
+            pretty(value, indent+1)
+        else:
+            print '\t' * (indent+1) + str(value)
 
 
 def notify_all_waiters(sync):
@@ -318,6 +246,7 @@ def notify_all_waiters(sync):
         sync.set()
 
     return True
+
 
 def singleton(class_name):
     """
@@ -506,21 +435,6 @@ def get_launched_process_count():
 def get_terminal_rc():
     rows, columns = os.popen('stty size', 'r').read().split()
     return rows, columns
-
-@singleton
-class HAinfra(object):
-
-    proceed_dict = {}
-
-    def get_proceed_status(self, obj):
-        if self.proceed_dict.get(obj, None):
-            print "Proceeding :) :) :)"
-        else:
-            print "DO NOT PROCEED XXXXXXX"
-
-    def set_proceed_status(self, obj):
-        self.proceed_dict[obj] = True
-
 
 if __name__ == "__main__":
     self = "disruptors.plugins.disruptor.Disruptor"

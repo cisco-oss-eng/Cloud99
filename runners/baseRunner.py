@@ -1,5 +1,4 @@
 import ha_engine.ha_infra as common
-import habase_helper as helper
 
 LOG = common.ha_logging(__name__)
 
@@ -43,16 +42,6 @@ class BaseRunner(object):
 
     def is_module_exeution_completed(self, finish_exection):
         raise NotImplementedError('Subclass should implement this method')
-
-    def send_notification(self, *args, **kwargs):
-        if self.child_param != None:
-            notifyList = self.child_param.get('notification', None)
-            if notifyList != None:
-                helper.notification(self.executor, notifyList, *args, **kwargs)
-            else:
-                LOG.warning('Notification list is empty')
-        else:
-            LOG.warning('Notification list is not configured')
 
     def get_ha_interval(self):
         return self.ha_interval

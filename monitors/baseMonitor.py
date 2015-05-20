@@ -1,5 +1,4 @@
 import ha_engine.ha_infra as common
-import habase_helper as helper
 
 LOG = common.ha_logging(__name__)
 

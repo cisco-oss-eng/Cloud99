@@ -1,7 +1,4 @@
 import ha_engine.ha_infra as infra
-import habase_helper as helper
-import threading
-import thread
 
 LOG = infra.ha_logging(__name__)
 
