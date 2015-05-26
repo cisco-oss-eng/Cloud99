@@ -31,15 +31,6 @@ class BaseRunner(object):
     def teardown(self):
         raise NotImplementedError('Subclass should implement this method')
 
-    def set_report(self):
-        raise NotImplementedError('Subclass should implement this method')
-
-    def display_report(self):
-        raise NotImplementedError('Subclass should implement this method')
-
-    def stable(self):
-        raise NotImplementedError('Subclass should implement this method')
-
     def is_module_exeution_completed(self, finish_exection):
         raise NotImplementedError('Subclass should implement this method')
 
