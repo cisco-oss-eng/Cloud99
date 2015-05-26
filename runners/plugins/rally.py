@@ -2,11 +2,6 @@ from runners.baseRunner import BaseRunner
 import ha_engine.ha_infra as infra
 import time
 import subprocess
-import os
-import threading
-import Queue
-import subprocess
-from fpdb import  ForkedPdb
 
 LOG = infra.ha_logging(__name__)
 
@@ -57,13 +52,11 @@ class RallyRunner(BaseRunner):
             line = proc.stdout.readline()
             infra.display_on_terminal(self, line)
             rally_ouput_table += line
-            #print line
 
         # Let the infra know to complete
         infra.display_on_terminal(self, "Rally finished executing.....")
         infra.set_execution_completed(finish_execution)
         infra.create_report_table(self, rally_ouput_table, user_table=True)
-        #infra.display_infra_report()
 
     def setup(self):
        infra.display_on_terminal(self,"Setting up the runner")
