@@ -23,12 +23,6 @@ class BaseMonitor(object):
     def stop(self):
         raise NotImplementedError('Subclass should implement this method')
 
-    def report(self):
-        raise NotImplementedError('Subclass should implement this method')
-
-    def stable(self):
-        raise NotImplementedError('Subclass should implement this method')
-
     def is_module_exeution_completed(self, finish_exection):
         raise NotImplementedError('Subclass should implement this method')
 

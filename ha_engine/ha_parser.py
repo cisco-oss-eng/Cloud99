@@ -277,23 +277,6 @@ class HAParser(object):
 
         self.openstack_config = dict(self.parse_and_load_input_file(
             complete_openstack_config))
-        '''
-        disruptor_yaml = \
-            openstack_config + "/configs/ha_configs/disruptors.yaml"
-
-        if os.path.isfile(disruptor_yaml):
-            os.remove(disruptor_yaml)
-
-        new_dict = {}
-        for key, data in self.openstack_config.items():
-            new_dict[key] = dict(data)
-        disruptor_dict = {'disruptors': {'disruptor': new_dict}}
-
-        self.dump_dict_to_yaml(disruptor_dict, yaml_file=disruptor_yaml)
-        self.parsed_disruptor_config = \
-            self.parse_and_load_input_file(openstack_config +
-                                           "/configs/ha_configs/disruptors.yaml")
-        '''
 
     @staticmethod
     def dump_dict_to_yaml(data, yaml_file=None):
