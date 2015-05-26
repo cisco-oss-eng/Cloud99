@@ -6,6 +6,7 @@ from ha_engine import ha_parser
 from ha_engine import ha_infra
 import os
 import shutil
+import stat
 import utils.utils as utils
 
 LOG = ha_infra.ha_logging(__name__)
@@ -52,6 +53,7 @@ class HAExecutor(object):
 
         ha_infra.start_run_time = \
             utils.get_timestamp(complete_timestamp=True)
+
         for executor_index, executor_block in enumerate(execute):
                 # Check whether the executor block needs to be repeated
                 # process the repeat commandi
@@ -104,7 +106,8 @@ class HAExecutor(object):
 
                     # process the timer command
                     if 'timer' in executor_block:
-                        LOG.info('Do timer related stuff..')
+                        # TODO: pradeech
+                        LOG.info('Timer....')
                         executor_block.pop('timer')
 
                     try:
@@ -134,11 +137,6 @@ class HAExecutor(object):
                                      % runerror, step_action)
                         ha_infra.ha_exit(0)
 
-                    except ha_infra.NotifyNotImplemented as notifyerr:
-                        LOG.critical('Notify is not implmented in %s '
-                                     %(notifyerr))
-                        ha_infra.ha_exit(0)
-
                     except Exception as runerror:
                         LOG.critical('Unable to continue execution %s'
                                      %str(runerror))
@@ -163,6 +161,7 @@ class HAExecutor(object):
 
         sync = None
         finish_execution = None
+
         if parallel:
             if use_sync:
                 if self.sync_objects.get(executor_index, None):
@@ -193,12 +192,13 @@ class HAExecutor(object):
                                        predicate=inspect.ismethod)]
             if step_action in ha_parser.REPORT_CMDS:
                 LOG.info('DISPLAYING REPORT')
-                ha_infra.display_report(class_object, step_action)
+                pass
             elif step_action in ha_parser.PUBLISHER_CMDS:
                 pass
             elif step_action in plugin_commands:
                 if parallel:
                     pipe_path_dir = self.infra_path + module_name
+
                     if not os.path.exists(pipe_path_dir):
                         LOG.info("Creating a file path for " + pipe_path_dir)
                         try:
@@ -208,7 +208,14 @@ class HAExecutor(object):
                             os.umask(original_umask)
 
                     pipe_path = pipe_path_dir + "/" + node
-                    os.mkfifo(pipe_path)
+                    LOG.info("Trying to create a pipe %s", pipe_path)
+
+                    if os.path.exists(pipe_path):
+                        LOG.info("Removing the previous pipe")
+                        os.remove(pipe_path)
+                    else:
+                        LOG.info("Creating a pipe for the %s", node)
+                        os.mkfifo(pipe_path)
 
                     self.open_pipes.append(pipe_path_dir)
                     pos = self.get_xterm_position()
@@ -254,11 +261,15 @@ class HAExecutor(object):
         if class_object and cmd:
             entire_block_arguments = getattr(class_object,
                                              "get_input_arguments")()
-            for block_arg in entire_block_arguments:
-                if node in block_arg:
-                    actual_arguments = block_arg
-                    getattr(class_object,
-                            "set_input_arguments")(actual_arguments)
+            if isinstance(entire_block_arguments, dict):
+                # we have already set the args
+                pass
+            if isinstance(entire_block_arguments, list):
+                for block_arg in entire_block_arguments:
+                    if node in block_arg:
+                        actual_arguments = block_arg
+                        getattr(class_object,
+                                "set_input_arguments")(actual_arguments)
         if ha_interval:
             setattr(class_object, "ha_interval", ha_interval)
         if disruption_count:

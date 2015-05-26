@@ -14,10 +14,7 @@ class BaseRunner(object):
     def set_input_arguments(self, input_args):
 
         self.input_args = input_args
-        LOG.info("Self, input %s " , str(self.input_args))
-
-    def get_input_arguments(self):
-        return self.input_args
+        LOG.info("Self, input %s ", str(self.input_args))
 
     def get_input_arguments(self):
         return self.input_args

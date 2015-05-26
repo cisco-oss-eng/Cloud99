@@ -124,80 +124,79 @@ def add_table_rows(self, tablename, rows):
 
 def display_infra_report(show_historical=False):
 
-    if 1 == 1:
-        displayed = False
-        r,c = map(int, get_terminal_rc())
-        print
-        print
-        print "*" * int(c)
-        title = "HA Infra Report Summary"
-        print HAConstants.HEADER + title.center(int(c))
-        print ("Generated on " +
-               utils.get_timestamp(complete_timestamp=True)).center(c) +\
-               HAConstants.ENDC
-        print "Total Number of Launched Processes : ", \
-            get_launched_process_count()
-        print "Time Started :", start_run_time
-        print "Time Completed :", stop_run_time
-        print "*" * int(c)
+    displayed = False
+    r,c = map(int, get_terminal_rc())
+    print
+    print
+    print "*" * int(c)
+    title = "HA Infra Report Summary"
+    print HAConstants.HEADER + title.center(int(c))
+    print ("Generated on " +
+            utils.get_timestamp(complete_timestamp=True)).center(c) +\
+            HAConstants.ENDC
+    print "Total Number of Launched Processes : ", \
+          get_launched_process_count()
+    print "Time Started :", start_run_time
+    print "Time Completed :", stop_run_time
+    print "*" * int(c)
 
-        for plugin_dir in ha_infra_report_tables:
+    for plugin_dir in ha_infra_report_tables:
+        print
+        tab_title = ("Result Reported by all " +
+                    plugin_dir.title()).title()
+        print HAConstants.HEADER + tab_title.center(c) + HAConstants.ENDC
+        print ("=" * len(tab_title)).center(c)
+        ha_infra_repor = [ha_infra_report_tables.get(plugin_dir.title())]
+        if len(ha_infra_report_tables.get(plugin_dir.title())) == 0:
+            print " -- No Results Reported  --".center(c)
             print
-            tab_title = ("Result Reported by all " +
-                         plugin_dir.title()).title()
-            print HAConstants.HEADER + tab_title.center(c) + HAConstants.ENDC
-            print ("=" * len(tab_title)).center(c)
-            ha_infra_repor = [ha_infra_report_tables.get(plugin_dir.title())]
-            if len(ha_infra_report_tables.get(plugin_dir.title())) == 0:
-                print " -- No Results Reported  --".center(c)
-                print
 
-            for plugin_tables in ha_infra_repor:
-                for plugin_name in plugin_tables:
-                    pname = ("Plugin Name : " + plugin_name).title()
-                    print pname
-                    print "=" * len(pname)
-                    table_count = 0
-                    for plugin_table in plugin_tables[plugin_name]:
-                        if isinstance(plugin_table, str) and not displayed:
-                                print plugin_table
-                                displayed = True
-                                break
-                        for tablename in plugin_table:
-                            table_count += 1
+        for plugin_tables in ha_infra_repor:
+            for plugin_name in plugin_tables:
+                pname = ("Plugin Name : " + plugin_name).title()
+                print pname
+                print "=" * len(pname)
+                table_count = 0
+                for plugin_table in plugin_tables[plugin_name]:
+                    if isinstance(plugin_table, str) and not displayed:
+                            print plugin_table
+                            displayed = True
+                            break
+                    for tablename in plugin_table:
+                        table_count += 1
+                        display = True
+                        historic_table = ha_infra_historical_tables.\
+                            get(tablename, False)
+                        if historic_table and show_historical:
                             display = True
-                            historic_table = ha_infra_historical_tables.\
-                                get(tablename, False)
-                            if historic_table and show_historical:
-                                display = True
-                            elif not historic_table and show_historical:
-                                display = False
-                            elif historic_table and not show_historical:
-                                display = False
-                            elif not historic_table and not show_historical:
-                                display = True
-                            if display:
-                                individual_table = plugin_table[tablename]
-                                headers = individual_table[0]
-                                print
-                                t_title = "Table : " + str(table_count) \
-                                          + "   " + tablename
-                                print t_title
-                                print "-" * len(t_title)
-                                report_table = PrettyTable(headers)
-                                for header in headers:
-                                   report_table.align[header] = "l"
+                        elif not historic_table and show_historical:
+                            display = False
+                        elif historic_table and not show_historical:
+                            display = False
+                        elif not historic_table and not show_historical:
+                            display = True
+                        if display:
+                            individual_table = plugin_table[tablename]
+                            headers = individual_table[0]
+                            print
+                            t_title = "Table : " + str(table_count) \
+                                       + "   " + tablename
+                            print t_title
+                            print "-" * len(t_title)
+                            report_table = PrettyTable(headers)
+                            for header in headers:
+                                report_table.align[header] = "l"
 
-                                report_table.padding_width = 3
-                                rows = individual_table[1:]
-                                for row in rows:
-                                    report_table.add_row(row)
+                            report_table.padding_width = 3
+                            rows = individual_table[1:]
+                            for row in rows:
+                                report_table.add_row(row)
 
-                                print str(report_table).center(c)
-            print "-" * c
-        print "*" * c
-    else:
-        LOG.info("Received request to display table")
+                            print str(report_table).center(c)
+        print "-" * c
+    print "*" * c
+
+    return
 
 
 def set_expected_failures(failure_list):
