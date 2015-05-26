@@ -54,6 +54,12 @@ class HAExecutor(object):
         ha_infra.start_run_time = \
             utils.get_timestamp(complete_timestamp=True)
 
+        user_env_pc = None
+        if os.environ.get('PROMPT_COMMAND', None):
+            # save the PROMPT_COMMAND to set xterm title for now
+            user_env_pc = os.environ['PROMPT_COMMAND']
+            del os.environ['PROMPT_COMMAND']
+
         for executor_index, executor_block in enumerate(execute):
                 # Check whether the executor block needs to be repeated
                 # process the repeat commandi
@@ -149,6 +155,9 @@ class HAExecutor(object):
         # clean up all the pipes
         for f in self.open_pipes:
             os.unlink(f)
+        # restore the env variables
+        if user_env_pc:
+            os.environ['PROMPT_COMMAND'] = user_env_pc
 
     def execute_the_block(self, executor_index, nodes, step_action,
                           ha_interval, disruption_count, parallel=False,
@@ -222,7 +231,10 @@ class HAExecutor(object):
 
                     ha_infra.total_launched_process += 1
                     LOG.info("XTERM of %s will read from %s", node, pipe_path)
+
+
                     subprocess.Popen(['xterm',
+                                      '-T', module_name.upper(),
                                       '-fg', 'white',
                                       '-bg', 'black',
                                       '-fa', "'Monospace'", '-fs', '10',
