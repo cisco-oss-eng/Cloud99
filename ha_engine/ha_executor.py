@@ -1,13 +1,10 @@
 import threading
 import multiprocessing
 import subprocess
-import time
 import inspect
 from ha_engine import ha_parser
 from ha_engine import ha_infra
 import os
-import signal
-import sys
 import shutil
 import utils.utils as utils
 
@@ -15,6 +12,7 @@ LOG = ha_infra.ha_logging(__name__)
 
 class HAExecutor(object):
     infra_path = "/tmp/ha_infra/"
+
     def __init__(self, parser):
         """
         Get the resource form haparser as input parameter and creates
@@ -33,9 +31,9 @@ class HAExecutor(object):
 
         if self.executor_data:
             ha_infra.dump_on_console(self.executor_data, "Executor Data")
-        ha_infra.dump_on_console(self.plugin_to_class_map,
-                                 "Plugin to class map")
 
+        ha_infra.dump_on_console(self.plugin_to_class_map,
+                                 "Plugins to Class map")
 
     def run(self):
         """
@@ -107,7 +105,6 @@ class HAExecutor(object):
                     # process the timer command
                     if 'timer' in executor_block:
                         LOG.info('Do timer related stuff..')
-                        hatimer = True
                         executor_block.pop('timer')
 
                     try:
@@ -150,12 +147,14 @@ class HAExecutor(object):
         LOG.info("******** Completing the executions ******** ")
         ha_infra.stop_run_time = \
             utils.get_timestamp(complete_timestamp=True)
+
         # clean up all the pipes
         for f in self.open_pipes:
             os.unlink(f)
 
     def execute_the_block(self, executor_index, nodes, step_action,
-                          ha_interval, disruption_count, parallel=False, use_sync=False):
+                          ha_interval, disruption_count, parallel=False,
+                          use_sync=False):
 
         use_process = False
         node_list = []
@@ -268,29 +267,6 @@ class HAExecutor(object):
         getattr(class_object, cmd)(sync=sync,
                                         finish_execution=finish_execution)
 
-    @staticmethod
-    def delay(self, val):
-        """ 
-        built-in-method for delay 
-        """
-        LOG.info('Waiting for %d seconds' %(val))
-        time.sleep(val) 
-
-    @staticmethod
-    def timer(self, val): 
-        LOG.info('Executing timer..') 
-
-    def post(self, rsrc_obj):
-        pass
-
-    def remove_instance(self): 
-        pass 
-
     def get_xterm_position(self):
         return self.xterm_position.pop()
 
-def signal_term_handler(signal, fram):
-    print "GOT SIGTERM ......"
-    sys.exit(0)
-
-signal.signal(signal.SIGTERM, signal_term_handler)

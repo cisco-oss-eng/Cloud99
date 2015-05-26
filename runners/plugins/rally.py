@@ -67,16 +67,3 @@ class RallyRunner(BaseRunner):
     def is_module_exeution_completed(self, finish_exection):
         return infra.is_execution_completed(finish_execution=self.finish_execution)
 
-    def gen_report(self):
-        self.ha_report.append(['keystone', '600'])
-        self.ha_report.append(['neutron', '600'])
-
-    def set_report(self):
-        report =  { 'headers' : ["Scenario Name", "Scenario Result"],
-                 'values' :  ["LBAAS", "PASS"] }
-
-    def display_report(self):
-        return { 'headers' : ["Scenario Name", "Scenario Result"],
-                 'values' :  [["LBAAS", "PASS"]] }
-
-
