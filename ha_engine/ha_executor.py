@@ -13,8 +13,12 @@ LOG = ha_infra.ha_logging(__name__)
 
 class HAExecutor(object):
     infra_path = "/tmp/ha_infra/"
-    xterm_position = ["100x35-100-100", "100x35+100-100",
-                      "100x35+100+100", "100x35-100+100"]*10
+    xterm_position = {'monitors': ["100x35+100+"+str(int(i*100) + (i*100))
+                                   for i in range(10)],
+                      'disruptors': ["100x35-100+"+str(int(100) + (i*100))
+                                     for i in range(10)],
+                      'runners': ["100x35-100-"+str(int(100) + (i*100))
+                                  for i in range(10)]}
     xterm_bg = {'disruptors': 'DarkGray',
                 'monitors': 'MintCream',
                 'runners': 'LightCyan1'}
@@ -230,15 +234,15 @@ class HAExecutor(object):
                         os.mkfifo(pipe_path)
 
                     self.open_pipes.append(pipe_path_dir)
-                    pos = self.get_xterm_position()
+
 
                     ha_infra.total_launched_process += 1
                     LOG.info("XTERM of %s will read from %s", node, pipe_path)
 
                     plugin = self.module_plugin_map[module_name.lower()]
-
                     xterm_bg = self.xterm_bg.get(plugin, 'black')
                     xterm_fg = 'black'
+                    pos = self.get_xterm_position(plugin)
                     subprocess.Popen(['xterm',
                                       '-T', module_name.upper(),
                                       '-fg', xterm_fg,
@@ -297,6 +301,7 @@ class HAExecutor(object):
         getattr(class_object, cmd)(sync=sync,
                                    finish_execution=finish_execution)
 
-    def get_xterm_position(self):
-        return self.xterm_position.pop()
+    def get_xterm_position(self, plugin):
+        if self.xterm_position.get(plugin, 'None'):
+            return self.xterm_position[plugin].pop(0)
 
