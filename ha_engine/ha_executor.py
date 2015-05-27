@@ -6,13 +6,18 @@ from ha_engine import ha_parser
 from ha_engine import ha_infra
 import os
 import shutil
-import stat
 import utils.utils as utils
 
 LOG = ha_infra.ha_logging(__name__)
 
+
 class HAExecutor(object):
     infra_path = "/tmp/ha_infra/"
+    xterm_position = ["100x35-100-100", "100x35+100-100",
+                      "100x35+100+100", "100x35-100+100"]*10
+    xterm_bg = {'disruptors': 'DarkGray',
+                'monitors': 'MintCream',
+                'runners': 'LightCyan1'}
 
     def __init__(self, parser):
         """
@@ -24,11 +29,10 @@ class HAExecutor(object):
         self.executor_data = parser.parsed_executor_config
         self.plugin_to_class_map = parser.plugin_to_class_map
         self.node_plugin_map = parser.node_plugin_map
+        self.module_plugin_map = parser.module_plugin_map
         self.sync_objects = {}
         self.finish_execution_objects = {}
         self.open_pipes = []
-        self.xterm_position = ["100x35-100-100", "100x35+100-100",
-                               "100x35+100+100", "100x35-100+100"]*10
 
         if self.executor_data:
             ha_infra.dump_on_console(self.executor_data, "Executor Data")
@@ -88,7 +92,8 @@ class HAExecutor(object):
                     ha_interval = executor_block.get('ha_interval', None)
                 disruption_count = 1 
                 if 'disruption_count' in executor_block:
-                    disruption_count = executor_block.get('disruption_count', None)
+                    disruption_count = executor_block.get('disruption_count',
+                                                          None)
                  
                 LOG.info("Block will be repeated %s times", repeat_count)
                 # Repeat count in each steps
@@ -145,7 +150,7 @@ class HAExecutor(object):
 
                     except Exception as runerror:
                         LOG.critical('Unable to continue execution %s'
-                                     %str(runerror))
+                                     % str(runerror))
                         ha_infra.ha_exit(0)
 
         LOG.info("******** Completing the executions ******** ")
@@ -202,8 +207,6 @@ class HAExecutor(object):
             if step_action in ha_parser.REPORT_CMDS:
                 LOG.info('DISPLAYING REPORT')
                 pass
-            elif step_action in ha_parser.PUBLISHER_CMDS:
-                pass
             elif step_action in plugin_commands:
                 if parallel:
                     pipe_path_dir = self.infra_path + module_name
@@ -232,19 +235,24 @@ class HAExecutor(object):
                     ha_infra.total_launched_process += 1
                     LOG.info("XTERM of %s will read from %s", node, pipe_path)
 
+                    plugin = self.module_plugin_map[module_name.lower()]
 
+                    xterm_bg = self.xterm_bg.get(plugin, 'black')
+                    xterm_fg = 'black'
                     subprocess.Popen(['xterm',
                                       '-T', module_name.upper(),
-                                      '-fg', 'white',
-                                      '-bg', 'black',
+                                      '-fg', xterm_fg,
+                                      '-bg', xterm_bg,
                                       '-fa', "'Monospace'", '-fs', '10',
                                       '-geometry', pos,
-                                      '-e', 'tail', '-f', pipe_path])
+                                      '-e',
+                                      'tail', '-f', pipe_path])
                     LOG.info("Creating a thread for %s", node)
 
                     if use_process:
                         '''
-                        t = multiprocessing.Process(target=self.execute_the_command,
+                        t = multiprocessing.Process(
+                        target=self.execute_the_command,
                                                 args=(class_object, node,
                                                       step_action, ha_interval,
                                                       disruption_count,
@@ -252,14 +260,13 @@ class HAExecutor(object):
                         '''
                     else:
                         t = threading.Thread(target=self.execute_the_command,
-                                                args=(class_object, node,
-                                                      step_action, ha_interval,
-                                                      disruption_count,
-                                                      sync, finish_execution))
+                                             args=(class_object, node,
+                                                   step_action, ha_interval,
+                                                   disruption_count, sync,
+                                                   finish_execution))
                     self.executor_threads.append(t)
                 else:
                     LOG.critical("Sequence mode is not supported")
-                    #self.execute_the_command(class_object, step_action)
             elif step_action in ha_parser.BUILT_IN_CMDS:
                 getattr(self, step_action)(node)
             else:
@@ -288,7 +295,7 @@ class HAExecutor(object):
             setattr(class_object, "disruption_count", disruption_count)
 
         getattr(class_object, cmd)(sync=sync,
-                                        finish_execution=finish_execution)
+                                   finish_execution=finish_execution)
 
     def get_xterm_position(self):
         return self.xterm_position.pop()

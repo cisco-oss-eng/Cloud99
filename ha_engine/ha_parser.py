@@ -3,7 +3,6 @@ import inspect
 import yaml
 import ha_engine.ha_infra as infra
 import ha_engine.ha_infra as common
-import time
 from collections import OrderedDict
 
 LOG = common.ha_logging(__name__)
@@ -17,11 +16,14 @@ GLOBAL_CMDS = ['config', 'repeat']
 PUBLISHER_CMDS = ['publishers']
 SUBSCRIBER_CMDS = ['subscribers']
 
+
 class DuplicateKeyFound(Exception):
     pass
 
-class UnknownValueForMode(Exception): 
-    pass 
+
+class UnknownValueForMode(Exception):
+    pass
+
 
 def ordered_load(stream, Loader=yaml.Loader, object_pairs_hook=OrderedDict):
     """ To make sure the order of execution in the order of the yaml  
@@ -79,6 +81,7 @@ class HAParser(object):
         self.resource_dirs = []
         self.plugin_to_class_map = {}
         self.node_plugin_map = {}
+        self.module_plugin_map = {}
 
         # base
         self.openstack_config = {}
@@ -150,11 +153,13 @@ class HAParser(object):
                     try:
                         module = filename[:-3]
                         plugin_dir_name = plugin_dir.split("/")[-2]
+                        self.module_plugin_map[module.lower()] = \
+                            plugin_dir_name.lower()
 
                         module_name = plugin_dir_name+".plugins."+filename[:-3]
                         LOG.info("Loading the plugin %s", module_name)
                         loaded_mod = __import__(module_name,
-                                                fromlist = [module_name])
+                                                fromlist=[module_name])
 
                         # Load class from imported module
                         # class_name = self.get_class_name(module_name)
