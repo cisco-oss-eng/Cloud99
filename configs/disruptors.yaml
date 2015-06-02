@@ -102,3 +102,8 @@ disruptors:
            process_name : openstack-nova-compute
            role : compute
            type: graceful
+    vm_disruptor:
+         glance_node: 
+            name: ['svl6-csl-b-glancectl-003']
+            type: api
+            role: controller
