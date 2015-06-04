@@ -1,6 +1,7 @@
 import yaml
 import os
-import ssh.sshutils as ssh
+import sys
+#import ssh.sshutils as ssh
 from hostObj import HostObject
 from nagios_cfg_gen import NagiosConfigGenUtil
 
@@ -36,7 +37,8 @@ class NagiosConfigGen(object):
             self.openstack_host_list.append(hstObj)
 
     def setOpenstackAppVmIp(self,appVmIpFile):
-        abs_path = os.getcwd() + os.sep + 'configs/%s' % appVmIpFile
+        #abs_path = os.getcwd() + os.sep + 'configs/%s' % appVmIpFile
+        abs_path = appVmIpFile
         try:
             fp = open(abs_path)
         except IOError as e:
@@ -54,7 +56,7 @@ class NagiosConfigGen(object):
             self.openstack_vm_list.append(hstObj)
             ctr+=1
         #print self.openstack_vm_list
-
+    """
     def performNagiosServiceCheck(self,ntype):
         hostlist = []
         if ntype == "node":
@@ -74,7 +76,7 @@ class NagiosConfigGen(object):
             else:
                 print "NRPE is not running in - %s " % hostObj.getHost()
                 hostObj.setNagios(False)
-    
+    """  
     def printHostList(self):
         for hostObj in self.openstack_host_list:
             print "%s - %s - %s - %s" % (hostObj.getIp(),hostObj.getHost(),
@@ -100,8 +102,9 @@ if __name__ == '__main__':
     yhp.setOpenstackNodeIp()
     #yhp.performNagiosServiceCheck("node")
     yhp.generateNagiosHostConfig()
-    yhp.setOpenstackAppVmIp("appvmlist")
+    if len(sys.argv) >= 2:
+        yhp.setOpenstackAppVmIp(sys.argv[1])
+        yhp.generateNagiosAppVmConfig()
     #yhp.performNagiosServiceCheck("appvm")
     yhp.printHostList()
-    yhp.generateNagiosAppVmConfig()
   

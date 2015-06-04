@@ -48,8 +48,11 @@ class NagiosConfigGenUtil(object):
 							('check_ssh','SSH to VM','f'),\
 							('check_ping!100.0,20%!500.0,60%','PING','f')]
 
-		file_path = os.getcwd() + os.sep + 'nagios_vm_host.cfg'
-		serviceCfgFile = os.getcwd() + os.sep + 'nagios_vm_service.cfg'
+		#file_path = os.getcwd() + os.sep + 'nagios_vm_host.cfg'
+		#serviceCfgFile = os.getcwd() + os.sep + 'nagios_vm_service.cfg'
+		file_path = '/tmp/nagios_install/config/nagios_vm_host.cfg'
+		serviceCfgFile = '/tmp/nagios_install/config/nagios_vm_service.cfg'
+
 		if not os.path.isfile(file_path):
 			#create nagios_host.cfg
 			f = open(file_path,'w+')
@@ -85,9 +88,11 @@ class NagiosConfigGenUtil(object):
 		compute_nag_cmds = [('check_ping!100.0,20%!500.0,60%','PING','f'),\
 								('check_ssh','SSH','f')]
 
-		file_path = os.getcwd() + os.sep + 'nagios_host.cfg'
-		serviceCfgFile = os.getcwd() + os.sep + 'nagios_service.cfg'
-		if not os.path.isfile('nagios_host.cfg'):
+		#file_path = os.getcwd() + os.sep + 'nagios_host.cfg'
+		#serviceCfgFile = os.getcwd() + os.sep + 'nagios_service.cfg'
+		file_path =  '/tmp/nagios_install/config/nagios_host.cfg'
+		serviceCfgFile =  '/tmp/nagios_install/config/nagios_service.cfg'
+		if not os.path.isfile(file_path):
 			#create nagios_host.cfg
 			f = open(file_path,'w+')
 			f.write(HEADER)
@@ -129,11 +134,11 @@ class NagiosConfigGenUtil(object):
 		for check_command in check_commands:
 			if check_command[2] == 't':
 				sf.write(nagios_service%('check_nrpe!'+check_command[0],
-										 host_name,
-										 host_name+"-"+check_command[0],check_command[1]))
+					 host_name,
+					 host_name+"-"+check_command[0],check_command[1]))
 			else:
 				sf.write(nagios_service%(check_command[0],host_name,
-										 host_name+"-"+check_command[0],check_command[1]))
+					 host_name+"-"+check_command[0],check_command[1]))
 		
 if __name__ == "__main__":
 	
