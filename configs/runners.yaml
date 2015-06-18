@@ -18,3 +18,13 @@ runners:
             scenario_name : glance
             rally_path: rally
             scenario_file: configs/scenarios/glance.json
+
+        create_volume_and_list:
+            scenario_name : cinder 
+            rally_path: rally
+            scenario_file: configs/scenarios/cinder.json
+
+        create_network_list_ports:
+            scenario_name: neutron
+            rally_path: rally
+            scenario_file: configs/scenarios/neutron_create_and_list_ports.json

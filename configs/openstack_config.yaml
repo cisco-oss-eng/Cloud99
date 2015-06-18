@@ -14,3 +14,14 @@ compute-2:
     user: root
     password: cisco123
     role: compute
+
+glance-controller-1:
+    openrc: /home/openstack/openrc
+    password: Cisco123
+    role: controller
+
+jump-host:
+    ip: svl4-csm-a-infra-001
+    user: root
+    password: Nimbus123*
+    role: jump-host

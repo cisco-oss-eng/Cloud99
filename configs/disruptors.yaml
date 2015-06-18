@@ -107,3 +107,20 @@ disruptors:
             name: ['svl6-csl-b-glancectl-003']
             type: api
             role: controller
+         neutron_node:
+            name: ['svl6-csl-b-neutronapi-001']
+            type: api
+            role: controller
+    jump_host_disruptor:
+         cinder_node:
+            name: ['svl6-csl-b-glancectl-002']
+            role: jump-host
+
+    jump_host_process_disruptor:
+         glance_api:
+            node: ['svl6-csl-b-glancectl-002']
+            process_name: openstack-glance-api
+            role: jump-host
+            type: graceful
+
+
