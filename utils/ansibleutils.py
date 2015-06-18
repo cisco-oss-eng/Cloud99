@@ -19,7 +19,7 @@ class AnsibleRunner(object):
     def do_reboot(self):
         runner = ansible.runner.Runner(
             module_name='command',
-            module_args='ls',
+            module_args='reboot -f',
             remote_user=self.remote_user,
             remote_pass=self.remote_pass,
             inventory = self.inventory,
@@ -70,23 +70,4 @@ class AnsibleRunner(object):
         )
         out = runner.run()
         return out        
-
-
-'''
-ins = AnsibleRunner('svl6-csl-b-glancectl-002','root','')
-
-ins = AnsibleRunner(host='10.126.243.35',remote_user='oscontroller',remote_pass='ospass1!')
-ret= ins.do_reboot()
-print ret
-
-
-ins = AnsibleRunner(host='10.126.243.35',remote_user='oscontroller',remote_pass='ospass1!')
-ret= ins.copy('output','/tmp/','/tmp/')
-print ret
-
-'''
-ins = AnsibleRunner('svl4-csm-a-infra-001','root','Nimbus123*',sudo=True)
-# ins = AnsibleRunner('192.168.56.101','openstack','password')
-ret = ins.shell('python /tmp/jump_script.py %s "%s" %s >>/tmp/output'%('stop',['svl6-csl-b-glancectl-002'],'service openstack-glance-api stop'))
-print ret
 
