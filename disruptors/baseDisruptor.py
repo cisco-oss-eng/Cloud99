@@ -31,6 +31,9 @@ class BaseDisruptor(object):
     def jump_host_disruption(self, sync=None, finish_execution=None):
         raise NotImplementedError('Subclass should implement this method')
 
+    def jump_host_process_disruption(self, sync=None, finish_execution=None):
+        raise NotImplementedError('Subclass should implement this method')
+
 
     def start_disruption(self, sync=None, finish_execution=None):
         raise NotImplementedError('Subclass should implement this method')
