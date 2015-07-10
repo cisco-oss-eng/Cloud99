@@ -52,6 +52,9 @@ class BaseDisruptor(object):
 
     def get_ha_interval(self):
         return self.ha_interval
+    
+    def get_ha_start_delay(self):
+        return self.ha_start_delay
  
     def get_disruption_count(self):
         return self.disruption_count
