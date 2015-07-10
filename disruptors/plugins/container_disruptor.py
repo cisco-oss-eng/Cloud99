@@ -63,8 +63,6 @@ class ContainerDisruptor(BaseDisruptor):
                   ip = host_config.get(node, None).get('ip', None)
                   user = host_config.get(node, None).get('user', None)
                   password = host_config.get(node, None).get('password', None)
-                  infra.display_on_terminal(self, "IP: ", ip, " User: ",
-                                          user, " Pwd: ", password)
                   infra.display_on_terminal(self, "Stopping ", container_name)
                   infra.display_on_terminal(self, "Executing ", container_stop_command)
                   code, out, error = infra.ssh_and_execute_command(ip, user,

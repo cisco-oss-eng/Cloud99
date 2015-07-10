@@ -7,24 +7,5 @@ runners:
         # Rally boot test
         boot_test:
             scenario_name: boot 
-            rally_path:  /Users/akalambu/python_venv/venv/bin/rally 
-            scenario_file: /Users/akalambu/rally/rally/boot.json
-        # Rally keystone tests
-        keystone_test:
-            scenario_name : keystone 
-            rally_path: /Users/akalambu/python_venv/venv/bin/rally
-            scenario_file: /Users/akalambu/rally/rally/create-tenant-with-users.json  
-        create_image_and_boot_instance:
-            scenario_name : glance
-            rally_path: rally
-            scenario_file: configs/scenarios/glance.json
-
-        create_volume_and_list:
-            scenario_name : cinder 
-            rally_path: rally
-            scenario_file: configs/scenarios/cinder.json
-
-        create_network_list_ports:
-            scenario_name: neutron
-            rally_path: rally
-            scenario_file: configs/scenarios/neutron_create_and_list_ports.json
+            rally_path:  /usr/bin/rally 
+            scenario_file: /root/rally/rally/boot.json 

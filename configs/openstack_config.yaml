@@ -1,27 +1,6 @@
 # Define your openstack VM nodes with ip and password info
 control-1:
-    ip: 172.29.87.40
+    ip: 10.30.117.229
     user: root
-    password: cisco123
+    password: ''
     role: controller
-compute-1:
-    ip: 172.29.87.39
-    user: root
-    password: cisco123
-    role: compute
-compute-2:
-    ip: 172.29.87.38
-    user: root
-    password: cisco123
-    role: compute
-
-glance-controller-1:
-    openrc: /home/openstack/openrc
-    password: Cisco123
-    role: controller
-
-jump-host:
-    ip: svl4-csm-a-infra-001
-    user: root
-    password: Nimbus123*
-    role: jump-host

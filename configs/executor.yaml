@@ -14,12 +14,14 @@ executors:
         mode: parallel
         repeat: 1
         sync: true
-        ha_interval:  3 
+        ha_interval:  30
 
         # disruption scenario
-        #node_disruption : [compute_node]
         execute: [boot_test]
-        start: [openstack_api, ansible, nagios]
-        process_disruption: [neutron_api]
-        #container_disruption: [neutron_api_container]
+        start: [openstack_api, ansible]
+        container_disruption: [nova_api_container]
     -
+        mode: parallel
+        repeat: 1
+        sync: false
+        execute: [boot_test]

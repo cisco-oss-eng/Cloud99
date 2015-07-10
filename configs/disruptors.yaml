@@ -44,6 +44,9 @@ disruptors:
        neutron_api_container:
            container_name : neutron_server_v1
            role : controller
+       nova_api_container:
+           container_name: novaapi_v1
+           role : controller
 
     process_disruptor:
        nova_api:
