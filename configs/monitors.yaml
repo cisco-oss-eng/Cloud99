@@ -27,7 +27,7 @@ monitors:
             dockerized: True 
             mariadb:
               user: root
-              password: Mh4YnrbJuFQDQVaA
+              password: nKvyS2pCi4qedy7I
 
 
     # Example config for Openstack endpoint and service monitor

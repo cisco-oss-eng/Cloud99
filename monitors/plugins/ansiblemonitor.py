@@ -26,7 +26,15 @@ SERVICE_LIST = [
     {'service': 'dhcp-agent', 'role': 'controller'},
     {'service': 'metadata-agent', 'role': 'controller'},
     {'service': 'neutron-l3-agent', 'role': 'controller'},
+    {'service': 'haproxy', 'role': 'controller'},
+    {'service': 'keepalive', 'role': 'controller'},
+    {'service': 'keystone-all', 'role': 'controller'},
+    {'service': 'cinder-api', 'role': 'controller'},
+    {'service': 'cinder-scheduler', 'role': 'controller'},
+    {'service': 'cinder-volume', 'role': 'controller'},
+    {'service': 'nova-consoleauth', 'role': 'controller'},
     {'service': 'neutron-linuxbridge-agent', 'role': 'controller'},
+    {'service': 'neutron-linuxbridge-agent', 'role': 'compute'},
     {'service': 'nova-compute', 'role': 'compute'}]
 
 

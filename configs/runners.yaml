@@ -8,4 +8,9 @@ runners:
         boot_test:
             scenario_name: boot 
             rally_path:  /usr/bin/rally 
-            scenario_file: /root/rally/rally/boot.json 
+            scenario_file: /root/rally/rally/boot.json
+        keystone_test:
+            scenario_name: keystone
+            rally_path: /usr/bin/rally
+            scenario_file : /root/rally/rally/create_tenant_with_users.json
+ 
