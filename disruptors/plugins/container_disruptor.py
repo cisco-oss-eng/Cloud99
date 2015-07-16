@@ -45,9 +45,9 @@ class ContainerDisruptor(BaseDisruptor):
                 nodes_to_be_disrupted.append(node)
                 # For now disrupt on only one node
                 break
-
-        container_stop_command = "docker stop " + container_name
-        container_start_command = "docker start " + container_name
+	#  Deprecate process disruptor and converge on this for both cases later
+        container_stop_command = "systemctl stop " + container_name
+        container_start_command = "systemctl start " + container_name
 	ha_start_delay = self.get_ha_start_delay()
         if sync:
             infra.display_on_terminal(self, "Waiting for notification")
