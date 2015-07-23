@@ -39,40 +39,40 @@ disruptors:
  
     container_disruptor:
        keystone_container:
-           container_name: keystone_v1
+           container_name: keystone_v1 
            role: controller
        neutron_api_container:
-           container_name : neutron_server_v1
+           container_name : neutron_server_v1 
            role : controller
        nova_api_container:
-           container_name: novaapi_v1
+           container_name: novaapi_v1 
            role : controller
        nova_scheduler_container:
-           container_name : novascheduler_v1
+           container_name : novascheduler_v1 
            role : controller
        novncproxy_container:
-           container_name : novanovncproxy_v1
+           container_name : novanovncproxy_v1 
            role : controller
        novaconsole_container:
-           container_name : novaconsoleauth_v1
+           container_name : novaconsoleauth_v1 
            role : controller
        novaconductor_container:
-           container_name : novaconduct_v1
+           container_name : novaconduct_v1 
            role : controller
        cinder_volume_container:
-           container_name : cinder_volume_v1
+           container_name : cinder_volume_v1 
            role : controller
        cinder_scheduler_container:
-           container_name : cinder_scheduler_v1
+           container_name : cinder_scheduler_v1 
            role : controller
        cinder_api_container:
-           container_name : cinder_api_v1
+           container_name : cinder_api_v1 
            role : controller
        metadata_container:
-           container_name : neutron_metadata_agent_v1
+           container_name : neutron_metadata_agent_v1 
            role : controller
        linuxbridge_cintainer:
-           container_name : neutron_linuxbridge_agent_v1
+           container_name : neutron_linuxbridge_agent_v1 
            role : controller
        l3agent_container:
            container_name : neutron_l3_agent_v1
@@ -84,13 +84,13 @@ disruptors:
            container_name : glanceapi_v1
            role : controller
        glance_registry_controller:
-           container_name : glancer_v1
+           container_name : glancer_v1 
            role : controller
        rabbit_container:
-           container_name : rabbitmq_v1
+           container_name : rabbitmq_v1 
            role : controller
        mariadb_container:
-           container_name : rabbitmq_v1
+           container_name : mariadb_v1 
            role : controller
        haproxy_container:
            container_name : haproxy_v1

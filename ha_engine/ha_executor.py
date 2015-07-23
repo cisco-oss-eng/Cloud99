@@ -167,7 +167,10 @@ class HAExecutor(object):
 
         # clean up all the pipes
         for f in self.open_pipes:
-            os.unlink(f)
+	    try:
+                os.unlink(f)
+            except: 
+		pass
         # restore the env variables
         if user_env_pc:
             os.environ['PROMPT_COMMAND'] = user_env_pc
@@ -251,7 +254,7 @@ class HAExecutor(object):
                                       '-T', module_name.upper(),
                                       '-fg', xterm_fg,
                                       '-bg', xterm_bg,
-                                      '-fa', "'Monospace'", '-fs', '10',
+                                      '-fa', "'Courier New'", '-fs', '10',
                                       '-geometry', pos,
                                       '-e',
                                       'tail', '-f', pipe_path])

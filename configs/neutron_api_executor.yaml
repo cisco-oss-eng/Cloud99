@@ -1,0 +1,24 @@
+executors:
+    # mode and repeat are mandatory for each block
+    # mode =  parallel|sequence -> execution mode
+    # repeat = number of times to repeat the block
+    # ha_interval = interval time between disruptions
+    # sync = true|false -> enable synchronization within the block
+    # node_disruption = uncomment for node level disruption , maps to logical name in disruptors.yaml
+    # process_disruption = uncomment for process disruption, maps to logical name in disruptors.yaml
+    # container_disruption = uncomment for container disruption, maps to logical name in disruptors.yaml
+    # execute = point to the logically test name in runners.yaml
+    # start = List of monitors to enable maps to logical names in monitors.yaml
+    -
+        # infra parameters
+        mode: parallel
+        repeat: 1
+        sync: true
+        ha_interval:  20 
+        ha_start_delay :  5 
+        disruption_count: 4
+        # disruption scenario
+        execute: [neutron_test]
+        start: [openstack_api, ansible, nagios]
+        container_disruption: [neutron_api_container]
+    -

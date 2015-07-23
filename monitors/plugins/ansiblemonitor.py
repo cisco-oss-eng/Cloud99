@@ -11,6 +11,7 @@ import ansible.runner
 from monitors.baseMonitor import BaseMonitor
 import ha_engine.ha_infra as infra
 import utils.utils as utils
+import pprint
 
 LOG = None
 
@@ -20,19 +21,16 @@ SERVICE_LIST = [
     {'service': 'rabbitmq-server', 'role': 'controller'},
     {'service': 'glance-api', 'role': 'controller'},
     {'service': 'glance-registry', 'role': 'controller'},
-#    {'service': 'nova-novncproxy', 'role': 'controller'},
     {'service': 'nova-conductor', 'role': 'controller'},
     {'service': 'nova-scheduler', 'role': 'controller'},
     {'service': 'dhcp-agent', 'role': 'controller'},
     {'service': 'metadata-agent', 'role': 'controller'},
-    {'service': 'neutron-l3-agent', 'role': 'controller'},
     {'service': 'haproxy', 'role': 'controller'},
     {'service': 'keepalive', 'role': 'controller'},
     {'service': 'keystone-all', 'role': 'controller'},
     {'service': 'cinder-api', 'role': 'controller'},
     {'service': 'cinder-scheduler', 'role': 'controller'},
     {'service': 'cinder-volume', 'role': 'controller'},
-    {'service': 'nova-consoleauth', 'role': 'controller'},
     {'service': 'neutron-linuxbridge-agent', 'role': 'controller'},
     {'service': 'neutron-linuxbridge-agent', 'role': 'compute'},
     {'service': 'nova-compute', 'role': 'compute'}]
@@ -178,6 +176,19 @@ class AnsibleRunner(object):
         '''
         results['status'] = 'PASS'
         failed_hosts = []
+
+        # BRD.
+        for node in results['contacted'].keys():
+            print "BRD: ansikeys: ", results['contacted'][node].keys()
+            try:
+               del results['contacted'][node]['stdout']
+               del results['contacted'][node]['stderr']
+               del results['contacted'][node]['cmd']
+               del results['contacted'][node]['delta']
+               del results['contacted'][node]['invocation']
+               del results['contacted'][node]['warnings']
+            except KeyError:
+               pass
 
         ###################################################
         # First validation is to make sure connectivity to
@@ -420,7 +431,7 @@ class AnsibleMonitor(BaseMonitor):
 
         return ansi_result
 
-    def _get_timestring(self, result, failed_only=False):
+    def _get_timestring(self, result, failed_only=False, host=None):
         '''
         Generate a time string from the list of results.
         '''
@@ -428,6 +439,9 @@ class AnsibleMonitor(BaseMonitor):
         for res in result:
             if failed_only and \
                     res['ansi_result']['status'] == "PASS":
+                continue
+            # BRD.
+            if host is not None and host not in res['failed_hosts']:
                 continue
             starttime = res['ts_start']
             endtime = res['ts_end']
@@ -449,6 +463,10 @@ class AnsibleMonitor(BaseMonitor):
 
         condensed_results = self.build_condensed_results()
         host_list = self.inventory.get_host_ip_list()
+        # BRD.
+        print "Condensed result"
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(condensed_results)
 
         rows = []
         for host in host_list:
@@ -460,7 +478,7 @@ class AnsibleMonitor(BaseMonitor):
                         timestr = ":-)"
                     else:
                         timestr = self._get_timestring(
-                            condensed_results[result]['reslist'])
+                            condensed_results[result]['reslist'], host=host)
                     single_row.append(timestr)
             for result in condensed_results.keys():
                 if result == "rabbitmq_check":
@@ -468,7 +486,7 @@ class AnsibleMonitor(BaseMonitor):
                         timestr = ":-)"
                     else:
                         timestr = self._get_timestring(
-                            condensed_results[result]['reslist'])
+                            condensed_results[result]['reslist'], host=host)
                     single_row.append(timestr)
             for result in condensed_results.keys():
                 if result == "mariadb_check":
@@ -476,21 +494,26 @@ class AnsibleMonitor(BaseMonitor):
                         timestr = ":-)"
                     else:
                         timestr = self._get_timestring(
-                            condensed_results[result]['reslist'])
+                            condensed_results[result]['reslist'], host=host)
                     single_row.append(timestr)
 
             process_check_status = 'PASS'
             failed_process_list = []
             for result in condensed_results.keys():
                 check_name = condensed_results[result]['reslist'][0]['name']
+                print "BRD: failed hosts keys: ", condensed_results[result]['reslist'][0].keys()
                 if check_name == "process_check":
                     # Check if all processes are ok.
                     if len(condensed_results[result]['reslist']) > 1:
+                        # BRD.
+                        for res in condensed_results[result]['reslist']:
+                            if host not in res['failed_hosts']:
+                                continue
                         process_check_status = 'FAIL'
                         failed_process_list.append(condensed_results[result])
                     else:
                         timestr = self._get_timestring(
-                            condensed_results[result]['reslist'])
+                            condensed_results[result]['reslist'], host=host)
 
             if process_check_status == 'PASS':
                 single_row.append(":-)")
@@ -574,7 +597,7 @@ class AnsibleMonitor(BaseMonitor):
                             break
                         timestr = self._get_timestring(
                             condensed_results[result]['reslist'],
-                            failed_only=True)
+                            failed_only=True,host=host)
                         single_row.append(timestr)
             rows.append(single_row)
         infra.add_table_rows(self, "Ansible Failed Processes", rows)
@@ -589,7 +612,7 @@ class AnsibleMonitor(BaseMonitor):
 
         ssh_result = {}
         ssh_result['reslist'] = []
-
+       
         per_proc_result = {}
         for service in SERVICE_LIST:
             svcname = service['service']
