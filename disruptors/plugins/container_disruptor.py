@@ -34,7 +34,7 @@ class ContainerDisruptor(BaseDisruptor):
             print "Inpt " + str(input_args)
             container_name = input_args.get('container_name', None)
             role = input_args.get('role', None)
-
+            disruption_type = input_args.get('disruption', None)
         infra.display_on_terminal(self, "Container ", container_name,
                                   " will be disrupted")
 
@@ -46,8 +46,8 @@ class ContainerDisruptor(BaseDisruptor):
                 # For now disrupt on only one node
                 break
 	#  Deprecate process disruptor and converge on this for both cases later
-        container_stop_command = "docker stop " + container_name
-        container_start_command = "docker start " + container_name
+        container_stop_command = "systemctl stop " + container_name
+        container_start_command = "systemctl start " + container_name
 	ha_start_delay = self.get_ha_start_delay()
         if sync:
             infra.display_on_terminal(self, "Waiting for notification")
@@ -58,6 +58,9 @@ class ContainerDisruptor(BaseDisruptor):
 
         ha_interval = self.get_ha_interval()
         disruption_count = self.get_disruption_count()
+        if disruption_type == 'infinite':
+            #Override the disruption count in executor.yaml
+            disruption_count = 1
         while infra.is_execution_completed(self.finish_execution) is False:
             if disruption_count:
                 disruption_count = disruption_count - 1
@@ -76,6 +79,9 @@ class ContainerDisruptor(BaseDisruptor):
                                                          HAConstants.WARNING +
                                                          'Stopped' +
                                                          HAConstants.ENDC]])
+                  if disruption_type == 'infinite':
+                      infra.display_on_terminal(self, "Infinite disruption chosen bring up container manually")
+                      break
                   infra.display_on_terminal(self, "Sleeping for interval ",
                                       str(ha_interval), " seconds")
                   time.sleep(ha_interval)
@@ -93,9 +99,10 @@ class ContainerDisruptor(BaseDisruptor):
                                                          HAConstants.ENDC]])
 
         # bring it back to stable state
-        infra.display_on_terminal(self, "Bringing the container to stable state")
-        infra.display_on_terminal(self, "Executing ", container_start_command)
-        code, out, error = infra.ssh_and_execute_command(ip, user, password,
+	if disruption_type != 'infinite':
+            infra.display_on_terminal(self, "Bringing the container to stable state")
+            infra.display_on_terminal(self, "Executing ", container_start_command)
+            code, out, error = infra.ssh_and_execute_command(ip, user, password,
                                                          container_start_command)
 
         infra.display_on_terminal(self, "Finishing Container Disruption")
