@@ -19,7 +19,7 @@ executors:
         disruption_count: 4
         # disruption scenario
         execute: [boot_test]
-        start: [openstack_api, ansible, nagios]
+        start: [openstack_api, ansible]
         container_disruption: [nova_api_container]
     -
         mode: parallel

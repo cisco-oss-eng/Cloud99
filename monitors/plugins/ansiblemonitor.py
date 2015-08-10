@@ -25,8 +25,6 @@ SERVICE_LIST = [
     {'service': 'nova-scheduler', 'role': 'controller'},
     {'service': 'dhcp-agent', 'role': 'controller'},
     {'service': 'metadata-agent', 'role': 'controller'},
-    {'service': 'haproxy', 'role': 'controller'},
-    {'service': 'keepalive', 'role': 'controller'},
     {'service': 'keystone-all', 'role': 'controller'},
     {'service': 'cinder-api', 'role': 'controller'},
     {'service': 'cinder-scheduler', 'role': 'controller'},

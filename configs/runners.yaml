@@ -20,4 +20,4 @@ runners:
         neutron_test:
             scenario_name: neutron
             rally_path: /usr/bin/rally
-            scenario_file : /root/rally/rally/create_and_list_networks.json 
+            scenario_file : /root/rally/rally/create_and_list_ports.json 

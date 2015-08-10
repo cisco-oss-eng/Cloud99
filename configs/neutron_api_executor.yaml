@@ -15,10 +15,15 @@ executors:
         repeat: 1
         sync: true
         ha_interval:  20 
-        ha_start_delay :  5 
+        ha_start_delay : 10
         disruption_count: 4
         # disruption scenario
         execute: [neutron_test]
-        start: [openstack_api, ansible, nagios]
+        start: [openstack_api, ansible]
         container_disruption: [neutron_api_container]
     -
+        mode: parallel
+        repeat: 1
+        sync: false
+        execute: [neutron_test]
+

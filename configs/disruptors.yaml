@@ -82,7 +82,7 @@ disruptors:
            container_name : docker-neutronmeta.service 
            role : controller
            disruption: finite
-       linuxbridge_cintainer:
+       linuxbridge_container:
            container_name : docker-neutronlb.service 
            role : controller
            disruption: finite
@@ -109,7 +109,7 @@ disruptors:
        mariadb_container:
            container_name : docker-mariadb.service 
            role : controller
-           disruption: finite
+           disruption: infinite
        haproxy_container:
            container_name : docker-haproxy.service 
            role : controller
