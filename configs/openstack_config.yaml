@@ -20,7 +20,7 @@ control-2:
     password: ''
     role: controller
 control-3:
-    ip: 10.30.117.233
+    ip: 10.30.117.232
     user: root
     password: ''
     role: controller

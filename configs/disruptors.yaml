@@ -39,62 +39,81 @@ disruptors:
  
     container_disruptor:
        keystone_container:
-           container_name: keystone_v1
+           container_name: docker-keystone.service
            role: controller
+           disruption: finite
        neutron_api_container:
-           container_name : neutron_server_v1
+           container_name : docker-neutronsrv.service 
            role : controller
+           disruption: finite
        nova_api_container:
-           container_name: novaapi_v1
+           container_name: docker-novaapi.service 
            role : controller
+           disruption: finite
        nova_scheduler_container:
-           container_name : novascheduler_v1
+           container_name : docker-novasch.service 
            role : controller
+           disruption: finite
        novncproxy_container:
-           container_name : novanovncproxy_v1
+           container_name : docker-novanovncproxy.service 
            role : controller
+           disruption: finite
        novaconsole_container:
-           container_name : novaconsoleauth_v1
+           container_name : docker-novaconsoleauth.service 
            role : controller
+           disruption: finite
        novaconductor_container:
-           container_name : novaconduct_v1
+           container_name : docker-novacond.service 
            role : controller
+           disruption: finite
        cinder_volume_container:
-           container_name : cinder_volume_v1
+           container_name : docker-cindervolume.service  
            role : controller
+           disruption: finite
        cinder_scheduler_container:
-           container_name : cinder_scheduler_v1
+           container_name : docker-cindersch.service 
            role : controller
+           disruption: finite
        cinder_api_container:
-           container_name : cinder_api_v1
+           container_name : docker-cinderapi.service 
            role : controller
+           disruption: finite
        metadata_container:
-           container_name : neutron_metadata_agent_v1
+           container_name : docker-neutronmeta.service 
            role : controller
-       linuxbridge_cintainer:
-           container_name : neutron_linuxbridge_agent_v1
+           disruption: finite
+       linuxbridge_container:
+           container_name : docker-neutronlb.service 
            role : controller
+           disruption: finite
        l3agent_container:
-           container_name : neutron_l3_agent_v1
+           container_name : docker-neutronl3.service 
            role : controller
+           disruption: finite
        dhcp_agent_container:
-           container_name : neutron_dhcp_agent_v1
+           container_name : docker-neutrondhcp.service 
            role : controller
+           disruption: finite
        glance_api_container:
-           container_name : glanceapi_v1
+           container_name : docker-glanceapi.service 
            role : controller
+           disruption: finite
        glance_registry_controller:
-           container_name : glancer_v1
+           container_name : docker-glancer.service 
            role : controller
+           disruption: finite
        rabbit_container:
-           container_name : rabbitmq_v1
+           container_name : docker-rabbitmq.service  
            role : controller
+           disruption: finite
        mariadb_container:
-           container_name : rabbitmq_v1
+           container_name : docker-mariadb.service 
            role : controller
+           disruption: infinite
        haproxy_container:
-           container_name : haproxy_v1
+           container_name : docker-haproxy.service 
            role : controller
+           disruption: finite
         
 
     process_disruptor:
