@@ -1,6 +1,6 @@
 # Define your openstack VM nodes with ip and password info
 control-1:
-    ip: 10.30.117.233
+    ip: 10.30.117.229
     user: root
     password: ''
     role: controller
@@ -15,7 +15,7 @@ compute-2:
     password: ''
     role: compute
 control-2:
-    ip: 10.30.117.229
+    ip: 10.30.117.232
     user: root
     password: ''
     role: controller
