@@ -57,19 +57,19 @@ The configs directory has information on configuration files that you need to mo
 
 So let us look at what changes you need to make in the configuration files. 
 
-** disruptors.yaml **
+**disruptors.yaml**
 In disruptors.yaml you specify the roles and names of your OpenStack processes and also if your controllers are running in seperate nodes.
 
-** monitors.yaml **
+**monitors.yaml**
 In monitors.yaml under ansiblemonitor specify the Mysql/mariadb user and password. Also under healthapi provide a pointer to your openrc file and password or source your openrc before running the script.
 
-** openstack_configs.yaml **
+**openstack_configs.yaml**
 Under openstack_config.yaml specify your openstack nodes with the roles you specified in disruptors.yaml. This would include the list of your controller and compute nodes.
 
-** runners.yaml **
+**runners.yaml**
 In runners.yaml specify pointer to your rally installation and also a pointer to rally scenario file. For now we support rally as runner but if you need to add your own you need to add code to runners/plugin directory.
 
-** executor.yaml **
+**executor.yaml**
 Now finally the executor.yaml brings everything together where you can specify the kind of disruption and also in start specify what services to monitor. For now have 
 start: [openstack_api, ansible]
 You can also specify here what kind of disruption you need. Look at the example files checked into configs directory to get an idea
