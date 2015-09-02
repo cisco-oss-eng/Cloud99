@@ -15,14 +15,15 @@ executors:
         repeat: 1
         sync: true
         ha_interval:  20 
-        ha_start_delay : 5
+        ha_start_delay : 10
         disruption_count: 4
         # disruption scenario
-        execute: [keystone_test]
+        execute: [boot_test]
         start: [openstack_api, ansible]
-        container_disruption: [keystone_container]
+        container_disruption: [l3agent_container]
     -
         mode: parallel
         repeat: 1
         sync: false
-        execute: [keystone_test]
+        execute: [boot_test]
+

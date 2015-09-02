@@ -49,7 +49,7 @@ disruptors:
        nova_api_container:
            container_name: docker-novaapi.service 
            role : controller
-           disruption: finite
+           disruption: infinite
        nova_scheduler_container:
            container_name : docker-novasch.service 
            role : controller

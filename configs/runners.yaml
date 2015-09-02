@@ -7,17 +7,17 @@ runners:
         # Rally boot test
         boot_test:
             scenario_name: boot 
-            rally_path:  /usr/bin/rally 
-            scenario_file: /root/rally/rally/boot.json
+            rally_path:  /home/ubuntu/rally/bin/rally 
+            scenario_file: /home/ubuntu/cisco-rally/rally/boot.json
         keystone_test:
             scenario_name: keystone
-            rally_path: /usr/bin/rally
-            scenario_file : /root/rally/rally/create-tenant-with-users.json
+            rally_path: /home/ubuntu/rally/bin/rally
+            scenario_file : /home/ubuntu/cisco-rally/rally/create-tenant-with-users.json
         cinder_test:
             scenario_name: cinder
-            rally_path: /usr/bin/rally
+            rally_path: /home/ubuntu/rally/bin/rally
             scenario_file : /root/rally/rally/create-and-delete-volume.json
         neutron_test:
             scenario_name: neutron
-            rally_path: /usr/bin/rally
+            rally_path: /home/ubuntu/rally/bin/rally
             scenario_file : /root/rally/rally/create_and_list_ports.json 
