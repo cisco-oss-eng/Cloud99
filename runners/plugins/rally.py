@@ -39,7 +39,7 @@ class RallyRunner(BaseRunner):
 
             infra.display_on_terminal(self, line)
 
-        results_command = rally_path + " task show "
+        results_command = rally_path + " task results "
         infra.display_on_terminal(self, "Collecting results ", results_command)
         proc = subprocess.Popen(results_command,
                                     shell=True,
