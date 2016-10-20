@@ -28,7 +28,7 @@ class Credentials(object):
         dct['password'] = self.rc_password
         dct['auth_url'] = self.rc_auth_url
         dct['tenant_name'] = self.rc_tenant_name
-	dct['cacert'] = self.rc_cacert
+        dct['cacert'] = self.rc_cacert
         return dct
 
     def get_nova_credentials(self):
@@ -37,7 +37,7 @@ class Credentials(object):
         dct['api_key'] = self.rc_password
         dct['auth_url'] = self.rc_auth_url
         dct['project_id'] = self.rc_tenant_name
-	dct['cacert'] = self.rc_cacert
+        dct['cacert'] = self.rc_cacert
         return dct
 
     def get_nova_credentials_v2(self):
