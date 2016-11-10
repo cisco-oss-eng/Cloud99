@@ -2,11 +2,12 @@
 echo "Cloud99 Setup"
 echo "-------------"; echo
 
+cur_script=$(readlink -f "${BASH_SOURCE[0]}")
+script_dir=$(dirname "${cur_script}")
+
 #setup_logs="/tmp/setup.log_"`date +"%b%d%y_%H%M%S"`
-curdir=`pwd`
-cur_root=${curdir%/*}
 old_pythonpath=${PYTHONPATH}
-pythonpath="${curdir}"
+pythonpath="${script_dir}"
 
 
 #echo "setup log: $setup_logs"; echo
@@ -15,11 +16,11 @@ pythonpath="${curdir}"
 ################################################
 # Set the pythonpath.
 ################################################
-export HAPATH=${pythonpath}
+export HAPATH=${PWD}
 export PYTHONPATH=${pythonpath}
 
 echo "================================================="
 echo "New PYTHONPATH: '${PYTHONPATH}'"
-echo "New HAPATH: '${PYTHONPATH}'"
+echo "New HAPATH: '${HAPATH}'"
 echo "Old PYTHONPATH: '${old_pythonpath}'"
 echo "================================================="

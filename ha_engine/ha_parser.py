@@ -129,7 +129,7 @@ class HAParser(object):
         Return _resource_dirs if all the paths are valid otherwise returns
         error and exit.
         """
-        ha_infra_dir = os.environ.get('HAPATH', None)
+        ha_infra_dir = os.environ.get('PYTHONPATH', None)
         self.resource_dirs.append(ha_infra_dir)
 
     def map_plugins_to_class_and_create_instances(self):
