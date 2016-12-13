@@ -11,6 +11,7 @@ import ha_parser
 import os
 import utils.utils as utils
 from ha_constants import HAConstants
+import datetime
 
 LOG_NAME = 'HA_AUTOMATION_INFRA'
 DEBUG = False
@@ -401,7 +402,7 @@ def display_on_terminal(self, *kwargs):
         if color is not None:
             data = stringc(data, color)
 
-        output = get_plugin_name(self) + " :: " + data
+        output = get_plugin_name(self) + "(" + datetime.datetime.now().strftime("%H:%M:%S") + ") ::" + data
         p.write(output)
 
 
