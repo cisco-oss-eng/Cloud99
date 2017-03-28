@@ -1,0 +1,13 @@
+## TODO:
+   - Python3.x compatibility
+   - Oslo config
+   - Pbr setup
+   - Loader for actors
+   - N9K disruptor
+   - Sigint handler
+   - Tests
+   - Service/container status at the end of the test
+   - Round-robin disruption with "all-down" strategy
+   - Support for "roles" in "where" in disruptors and monitors
+   - Do we need global disruption mode? (for case when we have multiple disruptors)?
+   - Disruptor agents?
