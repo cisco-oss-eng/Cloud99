@@ -1,0 +1,11 @@
+{
+  "networks": 5,
+  "ports_per_network": 1,
+  "concurrency": 1,
+  "tenants": 1,
+  "users_per_tenant": 3,
+  "max_concurrency": 1,
+  "max_cpu_count":1,
+  "rps": 1,
+  "times": 42
+}

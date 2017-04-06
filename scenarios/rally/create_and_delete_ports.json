@@ -1,0 +1,31 @@
+{
+    "NeutronNetworks.create_and_delete_ports": [
+        {
+            "runner": {
+                "type": "rps",
+                "times": {{times}},
+                "rps": {{rps}},
+                "max_concurrency": {{max_concurrency}},
+                "max_cpu_count": {{max_cpu_count}}
+            },
+            "args": {
+                "network_create_args": {},
+                "port_create_args": {},
+                "ports_per_network": {{ports_per_network}}
+            },
+            "context": {
+                "network": {},
+                "users": {
+                    "tenants": {{tenants}},
+                    "users_per_tenant": {{users_per_tenant}}
+                },
+                "quotas": {
+                    "neutron": {
+                        "network": -1,
+                        "port": -1
+                    }
+                }
+            }
+        }
+    ]
+}

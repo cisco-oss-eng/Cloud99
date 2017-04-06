@@ -1,0 +1,67 @@
+{% set flavor_name = flavor_name or "m1.tiny" %}
+{
+    "NovaServers.boot_and_delete_server": [
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "cirros.uec"
+                },
+                "force_delete": false
+            },
+            "runner": {
+                "type": "rps",
+                "times": {{times}},
+                "rps": {{rps}},
+                "max_concurrency": {{max_concurrency}},
+                "max_cpu_count": {{max_cpu_count}}
+            },
+            "context": {
+                "users": {
+                    "tenants": {{tenants}},
+                    "users_per_tenant": {{users_per_tenant}}
+                },
+                "quotas": {
+                    "nova": {
+                        "instances": -1,
+                    }
+                }
+            }
+        },
+        {
+            "args": {
+                "flavor": {
+                    "name": "{{flavor_name}}"
+                },
+                "image": {
+                    "name": "^cirros.*uec$"
+                },
+                "auto_assign_nic": true
+            },
+            "runner": {
+                "type": "rps",
+                "times": {{times}},
+                "rps": {{rps}},
+                "max_concurrency": {{max_concurrency}},
+                "max_cpu_count": {{max_cpu_count}}
+            },
+            "context": {
+                "users": {
+                    "tenants": {{tenants}},
+                    "users_per_tenant": {{users_per_tenant}}
+                },
+                "network": {
+                    "start_cidr": "{{network_cidr}}",
+                    "networks_per_tenant": {{networks_per_tenant}}
+                },
+                "quotas": {
+                    "nova": {
+                        "instances": -1,
+                    }
+                }
+            }
+        }
+    ]
+}

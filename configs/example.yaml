@@ -1,0 +1,135 @@
+# TODO move this out configuration
+openrc: # information from cloud operc file, this information will be used by loaders and monitors
+  auth_url: "http://172.28.165.225:5000/v2.0"
+  username: "admin"
+  password: "GTwEvHvW9U5wCVUp"
+  region_name: "RegionOne"
+  tenant_name: "admin"
+  https_cacert: ""
+  https_insecure: False
+
+inventory: # cloud hosts information
+  controller-1: # name to be referenced in monitors and disruptors
+    ip_or_hostname: "11.11.11.1"
+    username: "root"
+    password: "root"
+    role: "controller"
+
+  controller-2: # name to be referenced in monitors and disruptors
+    ip_or_hostname: "11.11.11.2"
+    username: "root"
+    password: "root"
+    role: "controller"
+
+  controller-3: # name to be referenced in monitors and disruptors
+    ip_or_hostname: "11.11.11.3"
+    username: "root"
+    password: "root"
+    role: "controller"
+
+
+disruptors:
+  - ProcessDisruptor:
+      disrupt: ntp   # This is name of services to disrupt with disrupt_prams
+      where: ["controller-1"] # list of logical names from the "inventory" section
+      mode: "sequential" # valid values are  ["parallel", "round_robin", "sequential"] check the README.md for more information
+      # These params will tell the disruptor how to start\stop service and for how long service should be in down state
+      with:
+        down_command: "systemctl stop {disrupt}" # How to stop entity defined in "disrupt" (the "disrupt" param is a placeholder which will be replaced with value from "disrupt")
+        down_check: "" # Command to check that service\node is still in down state. Not supported yet
+        down_timeout: 20 # Maximum time for the service before started automatically
+        up_command: "systemctl start {disrupt}" # How to start entity defined in "disrupt"
+        up_check: "" # Command to check disrupt service\node  is up. Command should return "0" if service is up
+        #up_check: "docker inspect -f  '{{{.State.ExitCode}}}' <container_name>"
+        down_time_min: 5 # Down time for the service will be random(down_time_min, down_time_max)
+        down_time_max: 10 # Down time for the service will be random(down_time_min, down_time_max)
+        cool_down_min: 10 # Interval between disruptions will be random(cool_down_min, cool_down_max). Note that in round_robin disrupt mode this is the time before running next disruptor iteration
+        cool_down_max: 10  # Interval between disruptions will be random(cool_down_min, cool_down_max). Note that in round_robin disrupt mode this is the time before running next disruptor iteration
+        times: 5
+        delay: 0 # Seconds to wait before start the disruption.
+
+  - ProcessDisruptor:
+      disrupt: cron
+      where: ["controller-2"]
+      mode: "parallel"
+      with:
+        down_command: "systemctl stop {disrupt}"
+        down_check: ""
+        up_command: "systemctl start {disrupt}"
+        up_check: ""
+        down_time_min: 5
+        down_time_max: 10
+        down_timeout: 20
+        down_timeout: 20
+        cool_down_min: 5
+        cool_down_max: 5
+        times: 10
+        delay: 0
+
+  - HostDisruptor:
+      where: ["controller-3"]
+      mode: "round_robin"
+      with:
+        down_command: "shutdown -r now"
+        down_check: ""
+        up_check: "ssh {username}@{host} ls"
+        down_time_min: 0
+        down_time_max: 300
+        down_timeout: 400
+        cool_down_min: 300  #time out before going to another host
+        cool_down_min: 60
+        cool_down_max: 60
+        times: 5
+        delay: 0
+
+loaders:
+  - DummyLoader:
+      times: 100
+  - Rally:
+      # name of rally scenario file to create load by default will lookup for
+      # scenarios in scenarios/rally/ folder
+      # (not the git cloned folder, but in folder where tool is installed)
+      scenario_file: "/root/cloud99/scenarios/rally/create_and_delete_ports.json"
+      # These values will override values defined in the scenarios/rally/defaults.json
+      scenario_args:
+        concurrency: 5
+        tenants: 1
+        users_per_tenant: 1
+        ports_per_network: 5
+        max_concurrency: 1
+        ports_per_network: 1
+        max_cpu_count: 1
+        rps: 1
+        times: 1
+      scenario_args_file: "defaults.json"
+      start_delay: 0
+      # note in if external db is used to store results deployment name should be unique
+      deployment_name: "dratushnyy_local:cloud99"
+       # Override db settings, for current moment only mysql is supported
+       # if you don't need to use external db comment these
+#      db:
+#        host: ""
+#        user: ""
+#        password: ""
+#        name: ""
+
+
+monitors:
+  - ServiceMonitor:
+      where: ["controller-1"]
+      with: "ps aux | grep {disrupt}"
+      cool_down_time: 10
+      services_to_monitor:
+        controller: ['neutron-server']
+        compute: ['nova-compute']
+
+  - MariaDBMonitor:
+      where: ["controller-2"]
+      cool_down_time: 10
+      db_password: nova
+      db_user: admin
+  - OpenStackApiMonitor:
+      cool_down_time: 10
+
+  - DummyMonitor: # Useful for debug. This monitor monitors nothing
+      cool_down_time: 10

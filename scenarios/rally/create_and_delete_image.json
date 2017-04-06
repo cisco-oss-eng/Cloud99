@@ -1,0 +1,29 @@
+{
+    "GlanceImages.create_and_delete_image": [
+        {
+            "args": {
+                "image_location": "http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img " ,
+                "container_format": "bare",
+                "disk_format": "qcow2"
+            },
+            "runner": {
+                "type": "rps",
+                "times": {{times}},
+                "rps": {{rps}},
+                "max_concurrency": {{max_concurrency}},
+                "max_cpu_count": {{max_cpu_count}}
+            },
+            "context": {
+                "users": {
+                    "tenants": {{tenants}},
+                    "users_per_tenant": {{users_per_tenant}}
+                },
+                "api_versions": {
+                    "glance": {
+                        "version": 2
+                    }
+                }
+            }
+        }
+    ]
+}
