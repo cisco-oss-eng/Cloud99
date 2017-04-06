@@ -87,10 +87,10 @@ class BaseDisruptor(pykka.ThreadingActor):
         self.mode = kwargs["mode"]
         self.disruption_count = kwargs["with"]["times"]
         self.disrupt = kwargs.get("disrupt")
-        self.stop_cmd = kwargs["with"]['down_command'].format(
-            disrupt=self.disrupt)
-        self.start_cmd = kwargs["with"]['up_command'].format(
-            disrupt=self.disrupt)
+        down_command = kwargs.get("with", {}).get("down_command", "")
+        self.stop_cmd = down_command.format(disrupt=self.disrupt)
+        start_command = kwargs.get("with", {}).get("up_command", "")
+        self.start_cmd = start_command.format(disrupt=self.disrupt)
         self.delay = kwargs["with"]["delay"]
         self.up_check = kwargs["with"]["up_check"]
         self.down_check = kwargs["with"]["down_check"]
@@ -107,10 +107,10 @@ class BaseDisruptor(pykka.ThreadingActor):
         self.inventory = inventory
 
     def on_receive(self, message):
-        msg = message.get('msg')
-        if msg == 'start' or msg == "disrupt":
+        msg = message.get("msg")
+        if msg == "start" or msg == "disrupt":
             self.disruption()
-        if msg == 'stop':
+        if msg == "stop":
             self.stop()
 
     def disruption(self):

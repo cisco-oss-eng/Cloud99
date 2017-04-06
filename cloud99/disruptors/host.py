@@ -36,7 +36,7 @@ class HostDisruptor(BaseDisruptor):
             Required("down_timeout"): int,
             Required("cool_down_min"): int,
             Required("cool_down_max"): int,
-            Required("start_in"): int,
+            Required("delay"): int,
         })
     })
 
