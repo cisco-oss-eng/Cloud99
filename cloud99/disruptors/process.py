@@ -62,6 +62,8 @@ class ProcessDisruptor(BaseDisruptor):
             while not disruption_finished:
                 elapsed += cool_down_min
                 result, error = ssh.exec_command(up_check_cmd)
+                LOGGER.debug("Up check result is '{0}'. Error is {1}".format(
+                    result.strip(), error.strip()))
                 if result is not None:
                     result = int(result.strip())
                     disruption_finished = (result == 0)
