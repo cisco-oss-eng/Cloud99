@@ -92,8 +92,10 @@ class BaseDisruptor(pykka.ThreadingActor):
         start_command = kwargs.get("with", {}).get("up_command", "")
         self.start_cmd = start_command.format(disrupt=self.disrupt)
         self.delay = kwargs["with"]["delay"]
-        self.up_check = kwargs["with"]["up_check"]
-        self.down_check = kwargs["with"]["down_check"]
+        up_check = kwargs["with"]["up_check"]
+        self.up_check = up_check.format(disrupt=self.disrupt)
+        down_check = kwargs["with"]["down_check"]
+        self.down_check = down_check.format(disrupt=self.disrupt)
         self.down_time_min = kwargs["with"]["down_time_min"]
         self.down_time_max = kwargs["with"]["down_time_max"]
         self.cool_down_min = kwargs["with"]["cool_down_min"]
