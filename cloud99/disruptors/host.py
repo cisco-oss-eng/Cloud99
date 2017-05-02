@@ -43,6 +43,16 @@ class HostDisruptor(BaseDisruptor):
     # TODO (dratushnyy) this should be configurable
     COOL_DOWN = 60
 
+    def setup_commands(self, **kwargs):
+        up_check = kwargs["with"]["up_check"]
+        self.up_check = up_check.format(disrupt=self.disrupt)
+        down_check = kwargs["with"]["down_check"]
+        self.down_check = down_check.format(username=self.disrupt)
+        down_command = kwargs.get("with", {}).get("down_command", "")
+        self.stop_cmd = down_command.format(disrupt=self.disrupt)
+        start_command = kwargs.get("with", {}).get("up_command", "")
+        self.start_cmd = start_command.format(disrupt=self.disrupt)
+
     @staticmethod
     def disrupt_once(disrupt, ip_or_hostname, username, password, start_cmd,
                      stop_cmd, up_check_cmd, down_check_cmd, down_time_min,

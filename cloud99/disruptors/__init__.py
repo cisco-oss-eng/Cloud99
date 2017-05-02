@@ -87,19 +87,15 @@ class BaseDisruptor(pykka.ThreadingActor):
         self.mode = kwargs["mode"]
         self.disruption_count = kwargs["with"]["times"]
         self.disrupt = kwargs.get("disrupt")
-        down_command = kwargs.get("with", {}).get("down_command", "")
-        self.stop_cmd = down_command.format(disrupt=self.disrupt)
-        start_command = kwargs.get("with", {}).get("up_command", "")
-        self.start_cmd = start_command.format(disrupt=self.disrupt)
         self.delay = kwargs["with"]["delay"]
-        up_check = kwargs["with"]["up_check"]
-        self.up_check = up_check.format(disrupt=self.disrupt)
-        down_check = kwargs["with"]["down_check"]
-        self.down_check = down_check.format(disrupt=self.disrupt)
         self.down_time_min = kwargs["with"]["down_time_min"]
         self.down_time_max = kwargs["with"]["down_time_max"]
         self.cool_down_min = kwargs["with"]["cool_down_min"]
         self.cool_down_max = kwargs["with"]["cool_down_max"]
+        self.up_check = ""
+        self.down_check = ""
+        self.stop_cmd = ""
+        self.start_cmd = ""
 
         self.hosts = {}
         # TODO (dratushnyy) add support for roles
@@ -107,6 +103,17 @@ class BaseDisruptor(pykka.ThreadingActor):
             if inventory.get(host_name):
                 self.hosts.setdefault(host_name, inventory[host_name])
         self.inventory = inventory
+        self.setup_commands(**kwargs)
+
+    def setup_commands(self, **kwargs):
+        up_check = kwargs["with"]["up_check"]
+        self.up_check = up_check.format(disrupt=self.disrupt)
+        down_check = kwargs["with"]["down_check"]
+        self.down_check = down_check.format(disrupt=self.disrupt)
+        down_command = kwargs.get("with", {}).get("down_command", "")
+        self.stop_cmd = down_command.format(disrupt=self.disrupt)
+        start_command = kwargs.get("with", {}).get("up_command", "")
+        self.start_cmd = start_command.format(disrupt=self.disrupt)
 
     def on_receive(self, message):
         msg = message.get("msg")
