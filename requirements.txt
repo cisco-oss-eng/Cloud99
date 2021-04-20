@@ -1,6 +1,6 @@
 rally==0.7.0
 gevent==1.0.2
 Pykka==1.2.1
-ansible==1.9.1
+ansible==2.9.20
 click==6.7
 voluptuous==0.9.3
